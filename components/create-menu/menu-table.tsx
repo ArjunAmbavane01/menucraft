@@ -1,28 +1,8 @@
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GripVertical } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
 import { Weekday, weekdays, WeeklyMenu } from "@/types/menu";
 import { Dish, DishCategory } from "@/types/dishes";
 import { MenuTableRow } from "./menu-table-row";
@@ -60,15 +40,15 @@ function SortableHeader({ category }: SortableHeaderProps) {
     <TableHead
       ref={setNodeRef}
       style={style}
-      className="text-center capitalize font-semibold text-gray-700 bg-gray-50"
+      className="text-center capitalize font-semibold text-gray-800 bg-muted p-4"
     >
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center gap-2">
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing hover:bg-gray-200 p-1 rounded"
+          className="cursor-grab active:cursor-grabbing hover:bg-gray-200 p-1 rounded transition"
         >
-          <GripVertical className="w-4 h-4 text-gray-500" />
+          <GripVertical className="size-4 text-gray-600" />
         </div>
         <span>{category}</span>
       </div>
@@ -94,8 +74,8 @@ export function MenuTable({
   return (
     <Table>
       <TableHeader>
-        <TableRow className="bg-gray-50">
-          <TableHead className="w-48 font-semibold text-gray-700">Day</TableHead>
+        <TableRow className="bg-muted hover:bg-muted">
+          <TableHead className="w-48 font-semibold text-gray-800 p-4">Day</TableHead>
 
           <DndContext
             sensors={sensors}

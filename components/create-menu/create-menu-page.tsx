@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { GripVertical } from "lucide-react";
 import { arrayMove } from "@dnd-kit/sortable";
 import { DragEndEvent } from "@dnd-kit/core";
 import { Weekday, weekdays, WeeklyMenu } from "@/types/menu";
@@ -10,12 +8,10 @@ import { Dish, DishCategory } from "@/types/dishes";
 import { MenuTable } from "./menu-table";
 import { DishSelectionDialog } from "./dish-selection-dialog";
 import { MenuPageHeader } from "./menu-page-header";
-
-const saveMenuChanges = async (menu: WeeklyMenu): Promise<number> => {
-  // TODO replace with server action
-  console.log("Saving menu:", menu);
-  return menu.id;
-};
+import { toast } from "sonner";
+import { saveMenu } from "@/server/menu/saveMenu";
+import { useRouter } from "next/navigation";
+import { deleteMenu } from "@/server/menu/deleteMenu";
 
 interface CreateMenuPageProps {
   menu: WeeklyMenu;
@@ -39,6 +35,8 @@ export default function CreateMenuPage({
     category: DishCategory;
   } | null>(null);
   const [availableDishes, setAvailableDishes] = useState<Dish[]>([]);
+
+  const router = useRouter();
 
   // Drag and drop for columns
   const [orderedCategories, setOrderedCategories] = useState<string[]>(
@@ -116,11 +114,21 @@ export default function CreateMenuPage({
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveMenuChanges(menu);
-      // router.push(`/menu/${menuId}`);
-    } catch (err) {
-      console.error(err);
+      await saveMenu(menu);
+      toast.success("Weekly menu saved.");
+    } catch (err: any) {
+      toast.error(err.message);
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteMenu(menu.id);
+      toast.success("Menu deleted.");
+      router.push("/dashboard");
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -145,10 +153,11 @@ export default function CreateMenuPage({
         saving={saving}
         onWeekChange={setWeekStartDate}
         onSave={handleSave}
+        onDelete={handleDelete}
       />
 
       {/* Menu Table */}
-      <Card className="shadow-sm overflow-hidden">
+      <div className="rounded-lg border shadow-sm overflow-hidden">
         <MenuTable
           menu={menu}
           dishes={dishes}
@@ -157,20 +166,20 @@ export default function CreateMenuPage({
           onCellClick={handleCellClick}
           onDragEnd={handleDragEnd}
         />
-      </Card>
+      </div>
 
       {/* Legend */}
-      <div className="mt-6 flex flex-wrap gap-4 text-sm text-gray-600">
+      <div className="mt-6 flex flex-wrap gap-4 text-sm text-foreground">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-50 border border-blue-400 rounded"></div>
+          <div className="size-4 bg-blue-100 border border-blue-500 rounded"></div>
           <span>Filled slot</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-50 border-2 border-dashed border-red-200 rounded"></div>
+          <div className="size-4 bg-red-100 border-2 border-dashed border-red-300 rounded"></div>
           <span>Empty slot</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-50 rounded"></div>
+          <div className="size-4 bg-blue-100 rounded"></div>
           <span>Today's row</span>
         </div>
       </div>

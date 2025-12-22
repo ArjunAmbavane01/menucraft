@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 import { Weekday, WeeklyMenu } from "@/types/menu";
 import { Dish, DishCategory } from "@/types/dishes";
+import { Button } from "../ui/button";
 
 interface MenuTableRowProps {
   day: Weekday;
@@ -32,12 +33,12 @@ export function MenuTableRow({
   isToday 
 }: MenuTableRowProps) {
   return (
-    <TableRow className={cn(isToday && "bg-blue-50/50")}>
-      <TableCell className="font-medium">
-        <div className="flex flex-col">
+    <TableRow>
+      <TableCell className="font-medium p-4 py-5">
+        <div className="flex items-center gap-3">
           <span className="capitalize font-semibold">{weekdayLabels[day]}</span>
           {isToday && (
-            <Badge variant="default" className="w-fit text-xs mt-1">
+            <Badge variant="default" className="w-fit text-xs mt-1 rounded">
               Today
             </Badge>
           )}
@@ -51,25 +52,26 @@ export function MenuTableRow({
         const isEmpty = !dish;
 
         return (
-          <TableCell key={category} className="text-center">
-            <button
+          <TableCell key={category} className="text-center p-4 py-5">
+            <Button
+            variant={"outline"}
               onClick={() => onCellClick(day, cat)}
               className={cn(
-                "w-full px-3 py-3 text-left rounded-lg transition-all flex items-center justify-between group",
+                "w-full p-4 text-left rounded-lg transition-all flex items-center justify-between group cursor-pointer",
                 isEmpty
-                  ? "border-2 border-dashed border-red-200 hover:border-red-400 bg-red-50/30"
+                  ? "border-2 border-dashed border-red-200 hover:border-red-400 hover:bg-red-50 bg-red-50"
                   : "border border-gray-200 hover:border-blue-400 hover:bg-blue-50"
               )}
             >
-              <span className={cn("text-sm", isEmpty ? "text-red-400 italic" : "text-gray-700")}>
+              <span className={cn("text-sm", isEmpty ? "text-red-400" : "text-gray-800")}>
                 {dish ? dish.name : "No dish"}
               </span>
               {isEmpty ? (
-                <AlertCircle className="w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <AlertCircle className="size-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" />
               ) : (
-                <Edit className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Edit className="size-3 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
               )}
-            </button>
+            </Button>
           </TableCell>
         );
       })}
