@@ -118,6 +118,7 @@ export default function CreateMenuPage({
       toast.success("Weekly menu saved.");
     } catch (err: any) {
       toast.error(err.message);
+    } finally {
       setSaving(false);
     }
   };
