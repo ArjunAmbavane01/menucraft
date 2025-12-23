@@ -1,18 +1,29 @@
 import { DishCategory } from "./dishes";
 
-export type Weekday =
-  | "monday"
-  | "tuesday"
-  | "wednesday"
-  | "thursday"
-  | "friday";
+export const weekdays = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+] as const;
 
-export const weekdays: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+export type Weekday = (typeof weekdays)[number];
 
-export type MenuData = Record<
-  Weekday,
-  Partial<Record<DishCategory, number>> // dish id reference
->;
+export const weekdayLabels: Record<Weekday, string> = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+};
+
+export type MenuDay = {
+  isHoliday: boolean;
+  dishes: Partial<Record<DishCategory, number>>;
+};
+
+export type MenuData = Record<Weekday, MenuDay>;
 
 export interface WeeklyMenu {
   id: number;
@@ -21,9 +32,9 @@ export interface WeeklyMenu {
 }
 
 export const MenuTemplate: Record<Weekday, DishCategory[]> = {
-  monday: ["main", "side", "egg", "pulav"],
-  tuesday: ["main", "side", "egg", "pulav"],
-  wednesday: ["main", "side", "egg", "pulav", "chicken"],
-  thursday: ["main", "side", "egg", "pulav"],
-  friday: ["main", "side", "egg", "pulav", "chicken"],
+  monday: ["main", "side", "egg", "dal", "optional", "pulav"],
+  tuesday: ["main", "side", "egg", "dal", "optional", "pulav"],
+  wednesday: ["main", "side", "egg", "dal", "optional", "pulav", "chicken"],
+  thursday: ["main", "side", "egg", "dal", "optional", "pulav"],
+  friday: ["main", "side", "egg", "dal", "optional", "pulav", "chicken"],
 };

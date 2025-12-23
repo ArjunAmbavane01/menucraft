@@ -1,23 +1,26 @@
 "use client"
 
-import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ChevronRight, PlusCircle } from "lucide-react";
-import { WeeklyMenu } from "@/types/menu";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { deleteMenu } from "@/server/menu/deleteMenu";
-import { cn } from "@/lib/utils";
-import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { deleteMenu } from "@/server/menu/deleteMenu";
+import { WeeklyMenu } from "@/types/menu";
+import { cn } from "@/lib/utils";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Calendar, ChevronRight, PlusCircle, Trash } from "lucide-react";
+import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface DashboardProps {
     recentMenus: WeeklyMenu[];
 }
 
 export default function DashboardPage({ recentMenus }: DashboardProps) {
-    const router = useRouter();
+
+    const [menus, setMenus] = useState<WeeklyMenu[]>(recentMenus);
+
     return (
         <section className="flex flex-col gap-10 top-16 container h-screen max-w-7xl mx-auto py-30">
             <div className="space-y-3">
@@ -29,13 +32,13 @@ export default function DashboardPage({ recentMenus }: DashboardProps) {
                 </p>
             </div>
 
-            <Link href="/create-menu" className={cn(buttonVariants({ size: "lg" }), "flex items-center! w-fit")}>
+            <Link href="/create-menu" className={cn(buttonVariants({ size: "lg" }), "flex w-fit")}>
                 <PlusCircle className="size-4" />
                 Create Weekly Menu
             </Link>
 
             {/* Menus List */}
-            {recentMenus.length === 0 ? (
+            {menus.length === 0 ? (
                 <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <Calendar className="size-12 text-muted-foreground stroke-1 mb-5" />
@@ -49,12 +52,9 @@ export default function DashboardPage({ recentMenus }: DashboardProps) {
                 </Card>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {recentMenus.map((menu) => (
+                    {menus.map((menu) => (
                         <div key={menu.id} className="relative group">
-
-                            {/* Delete confirmation dialog */}
                             <AlertDialog>
-                                {/* Trigger Button */}
                                 <AlertDialogTrigger asChild>
                                     <Button
                                         size={"icon"}
@@ -66,7 +66,6 @@ export default function DashboardPage({ recentMenus }: DashboardProps) {
                                     </Button>
                                 </AlertDialogTrigger>
 
-                                {/* Dialog Content */}
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Delete this weekly menu?</AlertDialogTitle>
@@ -84,39 +83,39 @@ export default function DashboardPage({ recentMenus }: DashboardProps) {
                                                 e.stopPropagation();
                                                 try {
                                                     await deleteMenu(menu.id);
+                                                    setMenus(c => c.filter(m => m.id !== menu.id))
                                                     toast.success("Menu deleted.");
-                                                    router.refresh();
                                                 } catch (error: any) {
                                                     toast.error(error.message);
                                                 }
                                             }}
                                         >
+                                            <MdDelete />
                                             Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
 
-                            {/* Card link */}
                             <Link href={`/menu/${menu.id}`}>
-                                <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer border-slate-200">
+                                <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer border-slate-200">
                                     <CardHeader className="pb-4">
                                         <div className="flex items-start gap-4">
-                                            <div className="p-3 bg-blue-100 border rounded-lg shadow-md">
+                                            <div className="p-3 bg-blue-100 border rounded-lg">
                                                 <Calendar className="size-6 text-blue-600" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <CardTitle className="text-lg font-semibold text-slate-900 mb-1">
+                                                <CardTitle className=" font-medium mb-2">
                                                     Week of {formatDate(menu.weekStartDate)}
                                                 </CardTitle>
-                                                <p className="text-sm font-medium text-slate-600">
+                                                <p className="text-sm font-normal text-muted-foreground">
                                                     {getWeekRange(menu.weekStartDate)}
                                                 </p>
                                             </div>
                                         </div>
                                     </CardHeader>
 
-                                    <CardContent className="pt-0 pb-4">
+                                    <CardContent className="pt-0">
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-slate-600 font-medium">View Details</span>
                                             <ChevronRight className="size-5 text-blue-500 group-hover:translate-x-2 transition-transform duration-300" />

@@ -6,6 +6,7 @@ import { weeklyMenus, dishes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import MenuViewPage from "@/components/menu-view/MenuViewPage";
 import { DishCategory } from "@/types/dishes";
+import { WeeklyMenu } from "@/types/menu";
 
 export default async function Page({
     params,
@@ -17,9 +18,6 @@ export default async function Page({
     if (!session) redirect("/signin");
 
     const menuId = Number(id);
-
-    console.log(menuId)
-    console.log(typeof menuId)
     const [menu] = await db
         .select()
         .from(weeklyMenus)
@@ -36,7 +34,7 @@ export default async function Page({
 
     return (
         <MenuViewPage
-            menu={menu}
+            menu={menu as WeeklyMenu}
             allDishes={allDishes}
         />
     );

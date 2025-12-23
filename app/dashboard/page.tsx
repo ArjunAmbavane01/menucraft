@@ -1,9 +1,9 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-import Dashboard from '@/components/dashboard/Dashboard';
-import Navbar from '@/components/navbar/navbar';
 import { getRecentMenus } from '@/server/menu/getRecentMenus';
+import { auth } from '@/lib/auth'
+import Navbar from '@/components/navbar/navbar';
+import Dashboard from '@/components/Dashboard';
 
 export default async function page() {
     const userSession = await auth.api.getSession({

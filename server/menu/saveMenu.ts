@@ -9,11 +9,15 @@ export async function saveMenu(menu: WeeklyMenu) {
   const missing: string[] = [];
 
   for (const day of Object.keys(MenuTemplate) as Weekday[]) {
-    for (const category of MenuTemplate[day]) {
-      const dishId = menu.data[day]?.[category];
-      if (!dishId) {
-        missing.push(`${day} → ${category}`);
-      }
+    const dayData = menu.data[day];
+
+    if (dayData?.isHoliday) continue;
+
+    const categoriesForDay = MenuTemplate[day];
+    
+    for (const category of categoriesForDay) {
+      const dishId = dayData?.dishes?.[category];
+      if (!dishId) missing.push(`${day} → ${category}`);
     }
   }
 

@@ -1,28 +1,35 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
-import { AlertDialog, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Loader2, Calendar as CalendarIcon, AlertCircle, ArrowLeft } from "lucide-react";
-import { IoDocumentTextOutline } from "react-icons/io5";
-import { MdDelete } from "react-icons/md";
-import { format } from "date-fns";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { WeeklyMenu, weekdays, weekdayLabels } from "@/types/menu";
+import { Dish } from "@/types/dishes";
+import { format } from "date-fns";
+import { AlertDialog, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
+import { CiExport, CiSaveDown1 } from "react-icons/ci";
+import { MdDelete } from "react-icons/md";
+import { toast } from "sonner";
 
 interface MenuPageHeaderProps {
+  menu: WeeklyMenu;
   weekStartDate: Date;
-  emptyCellsCount: number;
   saving: boolean;
+  dishes: Record<number, Dish>;
+  orderedCategories: string[];
   onWeekChange: (date: Date) => void;
   onSave: () => void;
   onDelete: () => void;
 }
 
 export function MenuPageHeader({
+  menu,
   weekStartDate,
-  emptyCellsCount,
   saving,
+  dishes,
+  orderedCategories,
   onWeekChange,
   onSave,
   onDelete,
@@ -30,8 +37,55 @@ export function MenuPageHeader({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const today = new Date();
   const router = useRouter();
+
+  const handleExport = () => {
+    let exportText = "";
+
+    const startDate = new Date(weekStartDate);
+
+    const dayOfWeek = startDate.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    startDate.setDate(startDate.getDate() + diff);
+
+    weekdays.forEach((day, index) => {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + index);
+
+      const dateStr = format(currentDate, "dd/MM/yy");
+      const dayLabel = weekdayLabels[day];
+
+      exportText += `${dayLabel} ${dateStr}\n`;
+
+      const dayData = menu.data[day];
+      const isHoliday = dayData?.isHoliday;
+
+      // Check if it's a holiday
+      if (isHoliday) {
+        exportText += "Holiday\n";
+      } else {
+        // Add dishes for this day
+        orderedCategories.forEach((category) => {
+          const dishId = dayData?.dishes?.[category as keyof typeof dayData.dishes];
+          const dish = dishId ? dishes[dishId] : null;
+
+          if (dish) {
+            exportText += `${category}: ${dish.name}\n`;
+          }
+        });
+      }
+
+      exportText += "\n";
+    });
+
+    navigator.clipboard.writeText(exportText.trim())
+      .then(() => {
+        toast.success("Menu copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy to clipboard");
+      });
+  };
 
   return (
     <div className="flex flex-col gap-10 mb-8">
@@ -59,15 +113,6 @@ export function MenuPageHeader({
               {format(weekStartDate, "MMMM dd, yyyy")}
             </Badge>
           </div>
-
-          {/* {emptyCellsCount > 0 && (
-            <div className="flex items-center gap-2 text-amber-600">
-              <AlertCircle className="size-4" />
-              <span className="text-sm font-medium">
-                {emptyCellsCount} empty {emptyCellsCount === 1 ? "slot" : "slots"}
-              </span>
-            </div>
-          )} */}
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -83,7 +128,6 @@ export function MenuPageHeader({
                 mode="single"
                 selected={weekStartDate}
                 onSelect={(date) => date && onWeekChange(date)}
-                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -96,18 +140,27 @@ export function MenuPageHeader({
                 Saving...
               </>
             ) : (
-              "Save"
+              <>
+                <CiSaveDown1 className="size-4"/>
+                Save
+              </>
             )}
           </Button>
 
-          {/* Delete (opens confirmation) */}
           <Button
             variant="destructive"
-            size="lg"
+            size="icon-lg"
             className="gap-2"
             onClick={() => setConfirmOpen(true)}
           >
-            Delete
+            <MdDelete />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-lg"
+            onClick={handleExport}
+          >
+            <CiExport />
           </Button>
         </div>
       </div>

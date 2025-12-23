@@ -26,35 +26,55 @@ export async function createWeeklyMenu(): Promise<{
   }
 
   const data: WeeklyMenu["data"] = {
-    monday: {},
-    tuesday: {},
-    wednesday: {},
-    thursday: {},
-    friday: {},
+    monday: {
+      isHoliday: false,
+      dishes: {}
+    },
+    tuesday: {
+      isHoliday: false,
+      dishes: {}
+    },
+    wednesday: {
+      isHoliday: false,
+      dishes: {}
+    },
+    thursday: {
+      isHoliday: false,
+      dishes: {}
+    },
+    friday: {
+      isHoliday: false,
+      dishes: {}
+    },
   };
 
   for (const day of Object.keys(MenuTemplate) as Weekday[]) {
-    for (const category of MenuTemplate[day]) {
+    const categoriesForDay = MenuTemplate[day];
+
+    for (const category of categoriesForDay) {
       const ids = groupedIds[category] ?? [];
       if (!ids.length) continue;
       const random = pickRandom(ids);
 
       data[day] = {
         ...data[day],
-        [category]: random,
+        dishes: {
+          ...data[day].dishes,
+          [category]: random,
+        },
       };
     }
   }
 
   const weekStartDate = new Date().toISOString().split("T")[0];
 
-  const [row] = await db
+  const [createdMenu] = await db
     .insert(weeklyMenus)
     .values({ weekStartDate, data })
     .returning();
 
   return {
-    menu: row as WeeklyMenu,
+    menu: createdMenu as WeeklyMenu,
     dishesByCategory,
   };
 }

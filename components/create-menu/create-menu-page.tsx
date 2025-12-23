@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { arrayMove } from "@dnd-kit/sortable";
-import { DragEndEvent } from "@dnd-kit/core";
-import { Weekday, weekdays, WeeklyMenu } from "@/types/menu";
-import { Dish, DishCategory } from "@/types/dishes";
-import { MenuTable } from "./menu-table";
-import { DishSelectionDialog } from "./dish-selection-dialog";
-import { MenuPageHeader } from "./menu-page-header";
-import { toast } from "sonner";
-import { saveMenu } from "@/server/menu/saveMenu";
 import { useRouter } from "next/navigation";
 import { deleteMenu } from "@/server/menu/deleteMenu";
+import { saveMenu } from "@/server/menu/saveMenu";
+import { Weekday, WeeklyMenu } from "@/types/menu";
+import { Dish, DishCategory } from "@/types/dishes";
+import { DishSelectionDialog } from "./dish-selection-dialog";
+import { MenuPageHeader } from "./menu-page-header";
+import { MenuTable } from "./menu-table";
+import { toast } from "sonner";
 
 interface CreateMenuPageProps {
   menu: WeeklyMenu;
@@ -36,12 +34,9 @@ export default function CreateMenuPage({
   } | null>(null);
   const [availableDishes, setAvailableDishes] = useState<Dish[]>([]);
 
-  const router = useRouter();
+  const [orderedCategories] = useState<string[]>(Object.keys(dishesByCategory));
 
-  // Drag and drop for columns
-  const [orderedCategories, setOrderedCategories] = useState<string[]>(
-    Object.keys(dishesByCategory)
-  );
+  const router = useRouter();
 
   useEffect(() => {
     const flat: Record<number, Dish> = {};
@@ -61,22 +56,33 @@ export default function CreateMenuPage({
 
   // Update menu when date changes
   useEffect(() => {
+    const year = weekStartDate.getFullYear();
+    const month = String(weekStartDate.getMonth() + 1).padStart(2, '0');
+    const day = String(weekStartDate.getDate()).padStart(2, '0');
+    const localDateString = `${year}-${month}-${day}`;
+
     setMenu((prev) => ({
       ...prev,
-      weekStartDate: weekStartDate.toISOString().split("T")[0],
+      weekStartDate: localDateString,
     }));
   }, [weekStartDate]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleToggleHoliday = (day: Weekday) => {
+    setMenu((prev) => {
+      const isCurrentlyHoliday = prev.data[day].isHoliday;
 
-    if (over && active.id !== over.id) {
-      setOrderedCategories((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over.id as string);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          [day]: {
+            ...prev.data[day],
+            isHoliday: !isCurrentlyHoliday,
+            // dishes: isCurrentlyHoliday ? prev.data[day].dishes : {},
+          },
+        },
+      };
+    });
   };
 
   const handleCellClick = (day: Weekday, category: DishCategory) => {
@@ -96,24 +102,27 @@ export default function CreateMenuPage({
   const handleDishSelect = (dish: Dish) => {
     if (!selectedCell) return;
 
-    const updatedMenu = {
-      ...menu,
+    setMenu((prev) => ({
+      ...prev,
       data: {
-        ...menu.data,
+        ...prev.data,
         [selectedCell.day]: {
-          ...menu.data[selectedCell.day],
-          [selectedCell.category]: dish.id,
+          isHoliday: prev.data[selectedCell.day].isHoliday,
+          dishes: {
+            ...prev.data[selectedCell.day].dishes,
+            [selectedCell.category]: dish.id,
+          },
         },
       },
-    };
-
-    setMenu(updatedMenu);
+    }));
+    
     setDialogOpen(false);
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      console.log(menu);
       await saveMenu(menu);
       toast.success("Weekly menu saved.");
     } catch (err: any) {
@@ -133,26 +142,35 @@ export default function CreateMenuPage({
     }
   };
 
+  const handleWeekChange = (date: Date) => {
+    const selectedDate = new Date(date);
+
+    const dayOfWeek = selectedDate.getDay();
+
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    const mondayDate = new Date(selectedDate);
+    mondayDate.setDate(selectedDate.getDate() - daysToMonday);
+
+    mondayDate.setHours(0, 0, 0, 0);
+    setWeekStartDate(mondayDate);
+  };
+
   // Get today's weekday
   const today = new Date();
   const todayWeekday = today
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase() as Weekday;
 
-  // Count empty cells
-  const emptyCellsCount = weekdays.reduce((count, day) => {
-    const categories = orderedCategories as DishCategory[];
-    const emptyInDay = categories.filter((cat) => !menu.data[day]?.[cat]).length;
-    return count + emptyInDay;
-  }, 0);
-
   return (
     <div className="container mx-auto max-w-7xl px-6 py-12">
       <MenuPageHeader
         weekStartDate={weekStartDate}
-        emptyCellsCount={emptyCellsCount}
         saving={saving}
-        onWeekChange={setWeekStartDate}
+        menu={menu}
+        dishes={dishes}
+        orderedCategories={orderedCategories}
+        onWeekChange={handleWeekChange}
         onSave={handleSave}
         onDelete={handleDelete}
       />
@@ -165,7 +183,7 @@ export default function CreateMenuPage({
           orderedCategories={orderedCategories}
           todayWeekday={todayWeekday}
           onCellClick={handleCellClick}
-          onDragEnd={handleDragEnd}
+          onToggleHoliday={handleToggleHoliday}
         />
       </div>
 
@@ -178,10 +196,6 @@ export default function CreateMenuPage({
         <div className="flex items-center gap-2">
           <div className="size-4 bg-red-100 border-2 border-dashed border-red-300 rounded"></div>
           <span>Empty slot</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="size-4 bg-blue-100 rounded"></div>
-          <span>Today's row</span>
         </div>
       </div>
 

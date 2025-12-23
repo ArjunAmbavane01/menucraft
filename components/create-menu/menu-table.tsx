@@ -1,8 +1,4 @@
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GripVertical } from "lucide-react";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Weekday, weekdays, WeeklyMenu } from "@/types/menu";
 import { Dish, DishCategory } from "@/types/dishes";
 import { MenuTableRow } from "./menu-table-row";
@@ -13,47 +9,11 @@ interface MenuTableProps {
   orderedCategories: string[];
   todayWeekday: Weekday;
   onCellClick: (day: Weekday, category: DishCategory) => void;
-  onDragEnd: (event: DragEndEvent) => void;
+  onToggleHoliday: (day: Weekday) => void;
 }
 
 interface SortableHeaderProps {
   category: string;
-}
-
-function SortableHeader({ category }: SortableHeaderProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <TableHead
-      ref={setNodeRef}
-      style={style}
-      className="text-center capitalize font-semibold text-gray-800 bg-muted p-4"
-    >
-      <div className="flex items-center gap-2">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing hover:bg-gray-200 p-1 rounded transition"
-        >
-          <GripVertical className="size-4 text-gray-600" />
-        </div>
-        <span>{category}</span>
-      </div>
-    </TableHead>
-  );
 }
 
 export function MenuTable({
@@ -62,32 +22,22 @@ export function MenuTable({
   orderedCategories,
   todayWeekday,
   onCellClick,
-  onDragEnd,
+  onToggleHoliday,
 }: MenuTableProps) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   return (
     <Table>
       <TableHeader>
         <TableRow className="bg-muted hover:bg-muted">
           <TableHead className="w-48 font-semibold text-gray-800 p-4">Day</TableHead>
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={onDragEnd}
-          >
-            <SortableContext items={orderedCategories} strategy={horizontalListSortingStrategy}>
-              {orderedCategories.map((category) => (
-                <SortableHeader key={category} category={category} />
-              ))}
-            </SortableContext>
-          </DndContext>
+          {orderedCategories.map((category) => (
+            <TableHead
+              key={category}
+              className="text-center capitalize font-semibold text-gray-800 bg-muted p-4"
+            >
+              {category}
+            </TableHead>
+          ))}
         </TableRow>
       </TableHeader>
 
@@ -100,6 +50,7 @@ export function MenuTable({
             menu={menu}
             dishes={dishes}
             onCellClick={onCellClick}
+            onToggleHoliday={onToggleHoliday}
             isToday={day === todayWeekday}
           />
         ))}

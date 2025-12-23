@@ -35,7 +35,6 @@ export default function AuthForm({ mode }: AuthFormProps) {
                         <SignUpForm authLoading={authLoading} signUpWithEmail={signUpWithEmail} /> :
                         <SignInForm authLoading={authLoading} signInWithEmail={signInWithEmail} />
                     }
-
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 import AuthForm from "@/components/forms/AuthForm";
 
 export default async function page() {

@@ -3,7 +3,7 @@ export type DishCategory =
   | "side"
   | "egg"
   | "pulav"
-  | "dal-khichdi"
+  | "dal"
   | "chicken"
   | "optional";
 
