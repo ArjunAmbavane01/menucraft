@@ -3,6 +3,7 @@
 import { db } from "@/db";
 import { dishes, weeklyMenus } from "@/db/schema";
 import { MenuTemplate, WeeklyMenu, Weekday } from "@/types/menu";
+import { eq } from "drizzle-orm";
 
 function pickRandom(arr: number[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -12,6 +13,15 @@ export async function createWeeklyMenu(): Promise<{
   menu: WeeklyMenu;
   dishesByCategory: Record<string, { id: number; name: string }[]>;
 }> {
+  const weekStartDate = new Date().toISOString().split("T")[0];
+
+  // Check if menu already exists for this week
+  const existingMenu = await db
+    .select()
+    .from(weeklyMenus)
+    .where(eq(weeklyMenus.weekStartDate, weekStartDate))
+    .limit(1);
+
   const all = await db.select().from(dishes);
 
   const dishesByCategory: Record<string, { id: number; name: string }[]> = {};
@@ -25,6 +35,15 @@ export async function createWeeklyMenu(): Promise<{
     dishesByCategory[d.category].push({ id: d.id, name: d.name });
   }
 
+  // If menu exists, return it
+  if (existingMenu.length > 0) {
+    return {
+      menu: existingMenu[0] as WeeklyMenu,
+      dishesByCategory,
+    };
+  }
+
+  // Otherwise create new menu
   const data: WeeklyMenu["data"] = {
     monday: {
       isHoliday: false,
@@ -65,8 +84,6 @@ export async function createWeeklyMenu(): Promise<{
       };
     }
   }
-
-  const weekStartDate = new Date().toISOString().split("T")[0];
 
   const [createdMenu] = await db
     .insert(weeklyMenus)

@@ -94,7 +94,10 @@ export function MenuPageHeader({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => {
+              router.refresh();
+              router.back();
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="size-4" />
@@ -141,7 +144,7 @@ export function MenuPageHeader({
               </>
             ) : (
               <>
-                <CiSaveDown1 className="size-4"/>
+                <CiSaveDown1 className="size-4" />
                 Save
               </>
             )}

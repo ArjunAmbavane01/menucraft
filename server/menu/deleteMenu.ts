@@ -11,6 +11,5 @@ export async function deleteMenu(menuId: number) {
     .returning();
 
   if (result.length === 0) throw new Error("Menu not found or already deleted.");
-
   return true;
 }

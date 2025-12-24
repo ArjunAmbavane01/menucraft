@@ -20,6 +20,7 @@ interface DashboardProps {
 export default function DashboardPage({ recentMenus }: DashboardProps) {
 
     const [menus, setMenus] = useState<WeeklyMenu[]>(recentMenus);
+    const router = useRouter();
 
     return (
         <section className="flex flex-col gap-10 top-16 container h-screen max-w-7xl mx-auto py-30">
@@ -53,78 +54,73 @@ export default function DashboardPage({ recentMenus }: DashboardProps) {
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {menus.map((menu) => (
-                        <div key={menu.id} className="relative group">
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button
-                                        size={"icon"}
-                                        variant={"ghost"}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="absolute top-3 right-3 z-10 p-2 hover:bg-red-50 transition-colors"
-                                    >
-                                        <Trash className="size-4 text-red-600" />
-                                    </Button>
-                                </AlertDialogTrigger>
-
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete this weekly menu?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action is permanent and cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-
-                                        <AlertDialogAction
-                                            className="bg-red-600 hover:bg-red-700"
-                                            onClick={async (e) => {
-                                                e.stopPropagation();
-                                                try {
-                                                    await deleteMenu(menu.id);
-                                                    setMenus(c => c.filter(m => m.id !== menu.id))
-                                                    toast.success("Menu deleted.");
-                                                } catch (error: any) {
-                                                    toast.error(error.message);
-                                                }
-                                            }}
+                        <div
+                            key={menu.id}
+                            onClick={() => router.push(`/menu/${menu.id}`)}
+                            className="flex flex-col gap-8 w-100 h-fit p-5 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer relative overflow-hidden"
+                        >
+                            <div className="flex w-full gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-lg font-medium mb-1.5">
+                                        Week of {formatDate(menu.weekStartDate)}
+                                    </div>
+                                    <p className="text-sm font-normal text-gray-600">
+                                        {getWeekRange(menu.weekStartDate)}
+                                    </p>
+                                </div>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            size={"icon"}
+                                            variant={"secondary"}
+                                            onClick={(e) => e.stopPropagation()}
                                         >
-                                            <MdDelete />
-                                            Delete
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                                            <Trash className="size-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
 
-                            <Link href={`/menu/${menu.id}`}>
-                                <Card className="relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer border-slate-200">
-                                    <CardHeader className="pb-4">
-                                        <div className="flex items-start gap-4">
-                                            <div className="p-3 bg-blue-100 border rounded-lg">
-                                                <Calendar className="size-6 text-blue-600" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <CardTitle className=" font-medium mb-2">
-                                                    Week of {formatDate(menu.weekStartDate)}
-                                                </CardTitle>
-                                                <p className="text-sm font-normal text-muted-foreground">
-                                                    {getWeekRange(menu.weekStartDate)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete this weekly menu?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action is permanent and cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
 
-                                    <CardContent className="pt-0">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-slate-600 font-medium">View Details</span>
-                                            <ChevronRight className="size-5 text-blue-500 group-hover:translate-x-2 transition-transform duration-300" />
-                                        </div>
-                                    </CardContent>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Cancel
+                                            </AlertDialogCancel>
 
-                                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                                </Card>
-                            </Link>
+                                            <AlertDialogAction
+                                                className="bg-red-600 hover:bg-red-700"
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    try {
+                                                        await deleteMenu(menu.id);
+                                                        setMenus(c => c.filter(m => m.id !== menu.id))
+                                                        toast.success("Menu deleted.");
+                                                    } catch (error: any) {
+                                                        toast.error(error.message);
+                                                    }
+                                                }}
+                                            >
+                                                <MdDelete />
+                                                Delete
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-600 font-medium">View Details</span>
+                                <ChevronRight className="size-5 group-hover:translate-x-2 transition-transform duration-300" />
+                            </div>
+
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                         </div>
                     ))}
                 </div>

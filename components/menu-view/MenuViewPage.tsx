@@ -37,8 +37,8 @@ export default function MenuViewPage({ menu, allDishes }: Props) {
             </Button>
 
             <h1 className="text-3xl font-semibold mb-4">Weekly Menu</h1>
-            <p className="text-muted-foreground mb-6">
-                Week starting: {new Date(menu.weekStartDate).toLocaleDateString()}
+            <p className="text-gray-600 mb-6">
+                Week starting: {new Date(menu.weekStartDate).toLocaleDateString("en-IN")}
             </p>
 
             <Card className="p-6">

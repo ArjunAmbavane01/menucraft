@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { weeklyMenus } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { WeeklyMenu, Weekday, MenuTemplate } from "@/types/menu";
+import { revalidatePath } from "next/cache";
 
 export async function saveMenu(menu: WeeklyMenu) {
   const missing: string[] = [];
@@ -14,7 +15,7 @@ export async function saveMenu(menu: WeeklyMenu) {
     if (dayData?.isHoliday) continue;
 
     const categoriesForDay = MenuTemplate[day];
-    
+
     for (const category of categoriesForDay) {
       const dishId = dayData?.dishes?.[category];
       if (!dishId) missing.push(`${day} → ${category}`);
@@ -33,5 +34,6 @@ export async function saveMenu(menu: WeeklyMenu) {
     .where(eq(weeklyMenus.id, menu.id))
     .returning();
 
+  revalidatePath('/dashboard')
   return row.id;
 }
