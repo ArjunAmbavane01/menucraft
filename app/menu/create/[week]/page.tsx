@@ -1,0 +1,58 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { getMenuByWeek, getAllDishesByCategory } from "@/server/menu/menuActions";
+import { getDishLastUsedMap } from "@/server/menu/getDishLastUsedMap";
+import { parseWeekDate } from "@/lib/week-utils";
+import CreateMenuClient from "./CreateMenuClient";
+import Navbar from "@/components/navbar/navbar";
+
+interface PageProps {
+    params: Promise<{ week: string }>;
+}
+
+export default async function CreateMenuPage({ params }: PageProps) {
+    const userSession = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!userSession) redirect("/signin");
+
+    const { week } = await params;
+
+    // Validate week format
+    try {
+        parseWeekDate(week);
+    } catch {
+        redirect("/dashboard");
+    }
+
+    // Check if menu already exists - redirect to edit
+    const existingMenu = await getMenuByWeek(week);
+    if (existingMenu) {
+        redirect(`/menu/edit/${week}`);
+    }
+
+    // Fetch dishes and last used map
+    const dishesByCategoryRaw = await getAllDishesByCategory();
+    const lastUsedMap = await getDishLastUsedMap();
+
+    // Convert to Dish[] format for each category
+    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
+    for (const [category, dishes] of Object.entries(dishesByCategoryRaw)) {
+        dishesByCategory[category] = dishes;
+    }
+
+    return (
+        <>
+            <Navbar user={userSession.user} />
+            <CreateMenuClient
+                week={week}
+                dishesByCategory={dishesByCategory}
+                lastUsedMap={lastUsedMap}
+                user={userSession.user}
+            />
+        </>
+    );
+}
+

@@ -30,7 +30,7 @@ export async function saveMenu(menu: WeeklyMenu) {
 
   const [row] = await db
     .update(weeklyMenus)
-    .set({ data: menu.data, weekStartDate: menu.weekStartDate })
+    .set({ data: menu.data, weekStartDate: menu.weekStartDate, status: menu.status })
     .where(eq(weeklyMenus.id, menu.id))
     .returning();
 
