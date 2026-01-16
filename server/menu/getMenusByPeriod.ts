@@ -5,6 +5,7 @@ import { weeklyMenus } from "@/db/schema";
 import { WeeklyMenu } from "@/types/menu";
 import { desc, eq } from "drizzle-orm";
 import { startOfWeek, endOfWeek, parseISO, startOfDay } from "date-fns";
+import { weekToISODate } from "@/lib/week-utils";
 
 export interface MenusByPeriod {
   thisWeek: WeeklyMenu | null;
@@ -51,9 +52,7 @@ export async function getMenusByPeriod(): Promise<MenusByPeriod> {
  * Get menu by week start date (format: dd-mm-yyyy)
  */
 export async function getMenuByWeek(weekFormat: string): Promise<WeeklyMenu | null> {
-  // Convert dd-mm-yyyy to YYYY-MM-DD
-  const [day, month, year] = weekFormat.split("-");
-  const dateString = `${year}-${month}-${day}`;
+  const dateString = weekToISODate(weekFormat);
 
   const [menu] = await db
     .select()

@@ -8,7 +8,7 @@ interface NavbarProps {
 
 export default function Navbar({ user }: NavbarProps) {
   return (
-    <nav className='fixed top-0 inset-x-0 flex h-fit w-full p-3 bg-sidebar/80 backdrop-blur-md border z-50'>
+    <nav className='fixed top-0 inset-x-0 flex h-16 w-full p-3 bg-sidebar/80 backdrop-blur-md border z-50'>
       <div className='flex justify-between items-center w-full max-w-7xl mx-auto'>
         <div className='flex items-center gap-5'>
           <Logo />

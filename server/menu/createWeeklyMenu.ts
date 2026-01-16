@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { dishes, weeklyMenus } from "@/db/schema";
 import { MenuTemplate, WeeklyMenu, Weekday } from "@/types/menu";
 import { eq } from "drizzle-orm";
+import { getWeekStart, formatWeekDate, weekToISODate } from "@/lib/week-utils";
 
 function pickRandom(arr: number[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -13,7 +14,10 @@ export async function createWeeklyMenu(): Promise<{
   menu: WeeklyMenu;
   dishesByCategory: Record<string, { id: number; name: string }[]>;
 }> {
-  const weekStartDate = new Date().toISOString().split("T")[0];
+  // Get current week's Monday and convert to YYYY-MM-DD for database
+  const weekStart = getWeekStart();
+  const weekFormat = formatWeekDate(weekStart);
+  const weekStartDate = weekToISODate(weekFormat);
 
   // Check if menu already exists for this week
   const existingMenu = await db
@@ -87,7 +91,7 @@ export async function createWeeklyMenu(): Promise<{
 
   const [createdMenu] = await db
     .insert(weeklyMenus)
-    .values({ weekStartDate, data })
+    .values({ weekStartDate, data, status: "draft" })
     .returning();
 
   return {

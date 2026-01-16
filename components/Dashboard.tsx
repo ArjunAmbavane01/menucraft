@@ -57,13 +57,13 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
     };
 
     const renderMenuRow = (menu: WeeklyMenu) => {
-        const weekFormat = formatWeekDate(menu.weekStartDate);
+        const weekFormat = formatWeekDate(new Date(menu.weekStartDate));
         const menuExists = true; // Menu is passed in, so it exists
 
         return (
             <TableRow key={menu.id}>
                 <TableCell className="font-medium">
-                    {formatWeekRange(menu.weekStartDate)}
+                    {formatWeekRange(weekFormat)}
                 </TableCell>
                 <TableCell>{getStatusBadge(menu.status)}</TableCell>
                 <TableCell>
