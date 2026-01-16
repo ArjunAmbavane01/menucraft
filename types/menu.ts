@@ -23,12 +23,19 @@ export type MenuDay = {
   dishes: Partial<Record<DishCategory, number>>;
 };
 
-export type MenuData = Record<Weekday, MenuDay>;
+export type MenuData = Record<Weekday, MenuDay> & {
+  meta?: {
+    status: MenuStatus;
+  };
+};
+
+export type MenuStatus = "draft" | "published";
 
 export interface WeeklyMenu {
   id: number;
   weekStartDate: string;
   data: MenuData;
+  status: MenuStatus;
 }
 
 export const MenuTemplate: Record<Weekday, DishCategory[]> = {
