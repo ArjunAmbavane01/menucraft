@@ -2,157 +2,221 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { deleteMenu } from "@/server/menu/deleteMenu";
-import { WeeklyMenu } from "@/types/menu";
-import { cn } from "@/lib/utils";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Calendar, ChevronRight, PlusCircle, Trash } from "lucide-react";
-import { MdDelete } from "react-icons/md";
-import { toast } from "sonner";
 import { useState } from "react";
+import { WeeklyMenu, MenuStatus } from "@/types/menu";
+import { formatWeekRange, formatWeekDate, getNextWeekStart, getWeekStart } from "@/lib/week-utils";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar, CalendarIcon, PlusCircle, Edit, Eye } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 interface DashboardProps {
-    recentMenus: WeeklyMenu[];
+    menusByPeriod: {
+        thisWeek: WeeklyMenu | null;
+        upcoming: WeeklyMenu[];
+        past: WeeklyMenu[];
+    };
 }
 
-export default function DashboardPage({ recentMenus }: DashboardProps) {
-
-    const [menus, setMenus] = useState<WeeklyMenu[]>(recentMenus);
+export default function DashboardPage({ menusByPeriod }: DashboardProps) {
     const router = useRouter();
+    const [datePickerOpen, setDatePickerOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+    const handleCreateNextWeek = () => {
+        const nextWeekStart = getNextWeekStart();
+        const weekFormat = formatWeekDate(nextWeekStart);
+        router.push(`/menu/create/${weekFormat}`);
+    };
+
+    const handleDateSelect = (date: Date | undefined) => {
+        if (!date) return;
+
+        // Find the Monday of the selected week
+        const dayOfWeek = date.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const mondayDate = new Date(date);
+        mondayDate.setDate(date.getDate() - daysToMonday);
+        mondayDate.setHours(0, 0, 0, 0);
+
+        const weekFormat = formatWeekDate(mondayDate);
+        setDatePickerOpen(false);
+        router.push(`/menu/create/${weekFormat}`);
+    };
+
+    const getStatusBadge = (status: MenuStatus) => {
+        return (
+            <Badge variant={status === "published" ? "default" : "secondary"}>
+                {status === "published" ? "Published" : "Draft"}
+            </Badge>
+        );
+    };
+
+    const renderMenuRow = (menu: WeeklyMenu) => {
+        const weekFormat = formatWeekDate(menu.weekStartDate);
+        const menuExists = true; // Menu is passed in, so it exists
+
+        return (
+            <TableRow key={menu.id}>
+                <TableCell className="font-medium">
+                    {formatWeekRange(menu.weekStartDate)}
+                </TableCell>
+                <TableCell>{getStatusBadge(menu.status)}</TableCell>
+                <TableCell>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={`/menu/view/${weekFormat}`}
+                            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8")}
+                        >
+                            <Eye className="size-4 mr-1" />
+                            View
+                        </Link>
+                        {menuExists && (
+                            <Link
+                                href={`/menu/edit/${weekFormat}`}
+                                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8")}
+                            >
+                                <Edit className="size-4 mr-1" />
+                                Edit
+                            </Link>
+                        )}
+                    </div>
+                </TableCell>
+            </TableRow>
+        );
+    };
 
     return (
-        <section className="flex flex-col gap-10 top-16 container h-screen max-w-7xl mx-auto py-30">
+        <section className="flex flex-col gap-10 container max-w-7xl mx-auto py-16 pt-24">
             <div className="space-y-3">
-                <h1 className="text-3xl">
-                    Weekly Menus
-                </h1>
+                <h1 className="text-3xl font-semibold">Weekly Menus</h1>
                 <p className="text-lg text-muted-foreground">
                     Plan and manage your weekly meal schedules
                 </p>
             </div>
 
-            <Link href="/create-menu" className={cn(buttonVariants({ size: "lg" }), "flex w-fit")}>
-                <PlusCircle className="size-4" />
-                Create Weekly Menu
-            </Link>
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+                <Button onClick={handleCreateNextWeek} size="lg">
+                    <PlusCircle className="size-4 mr-2" />
+                    Create Menu for Next Week
+                </Button>
 
-            {/* Menus List */}
-            {menus.length === 0 ? (
-                <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center py-16">
-                        <Calendar className="size-12 text-muted-foreground stroke-1 mb-5" />
-                        <h3 className="text-lg font-semibold mb-3">
-                            No menus yet
-                        </h3>
-                        <p className="text-muted-foreground text-center">
-                            Get started by creating your first weekly menu
-                        </p>
-                    </CardContent>
-                </Card>
-            ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {menus.map((menu) => (
-                        <div
-                            key={menu.id}
-                            onClick={() => router.push(`/menu/${menu.id}`)}
-                            className="flex flex-col gap-8 w-100 h-fit p-5 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer relative overflow-hidden"
-                        >
-                            <div className="flex w-full gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-lg font-medium mb-1.5">
-                                        Week of {formatDate(menu.weekStartDate)}
-                                    </div>
-                                    <p className="text-sm font-normal text-gray-600">
-                                        {getWeekRange(menu.weekStartDate)}
-                                    </p>
-                                </div>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            size={"icon"}
-                                            variant={"secondary"}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <Trash className="size-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
+                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" size="lg">
+                            <CalendarIcon className="size-4 mr-2" />
+                            Create Menu for Specific Week
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                                setSelectedDate(date);
+                                handleDateSelect(date);
+                            }}
+                        />
+                    </PopoverContent>
+                </Popover>
+            </div>
 
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Delete this weekly menu?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action is permanent and cannot be undone.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                Cancel
-                                            </AlertDialogCancel>
-
-                                            <AlertDialogAction
-                                                className="bg-red-600 hover:bg-red-700"
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    try {
-                                                        await deleteMenu(menu.id);
-                                                        setMenus(c => c.filter(m => m.id !== menu.id))
-                                                        toast.success("Menu deleted.");
-                                                    } catch (error: any) {
-                                                        toast.error(error.message);
-                                                    }
-                                                }}
-                                            >
-                                                <MdDelete />
-                                                Delete
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-600 font-medium">View Details</span>
-                                <ChevronRight className="size-5 group-hover:translate-x-2 transition-transform duration-300" />
-                            </div>
-
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+            {/* This Week's Menu */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>This Week</CardTitle>
+                    <CardDescription>Menu for the current week</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {menusByPeriod.thisWeek ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Week Range</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {renderMenuRow(menusByPeriod.thisWeek)}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <Calendar className="size-12 stroke-1 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold mb-1">No menu for this week</h3>
+                            <p className="text-muted-foreground mb-3">
+                                Create a menu to get started
+                            </p>
+                            <Button onClick={handleCreateNextWeek} variant="outline">
+                                <PlusCircle className="size-4 mr-2" />
+                                Create Menu
+                            </Button>
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Upcoming Menus */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Upcoming Menus</CardTitle>
+                    <CardDescription>Future weekly menus</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {menusByPeriod.upcoming.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Week Range</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {menusByPeriod.upcoming.map(renderMenuRow)}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="py-8 text-center text-muted-foreground">
+                            No upcoming menus
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Past Menus */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Past Menus</CardTitle>
+                    <CardDescription>Previously created menus</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {menusByPeriod.past.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Week Range</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {menusByPeriod.past.slice(0, 10).map(renderMenuRow)}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="py-8 text-center text-muted-foreground">
+                            No past menus
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </section>
     );
-}
-
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-    });
-}
-
-function getWeekRange(startDateString: string): string {
-    const startDate = new Date(startDateString);
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 6);
-
-    const startFormatted = startDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-    });
-
-    const endFormatted = endDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
-
-    return `${startFormatted} - ${endFormatted}`;
 }

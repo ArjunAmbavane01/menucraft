@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getRecentMenus } from '@/server/menu/getRecentMenus';
+import { getMenusByPeriod } from '@/server/menu/getMenusByPeriod';
 import { auth } from '@/lib/auth'
 import Navbar from '@/components/navbar/navbar';
 import Dashboard from '@/components/Dashboard';
@@ -11,13 +11,13 @@ export default async function page() {
     })
     if (!userSession) redirect("/signin");
 
-    // Fetch recent menus
-    const recentMenus = await getRecentMenus();
+    // Fetch menus grouped by period
+    const menusByPeriod = await getMenusByPeriod();
 
     return (
         <>
             <Navbar user={userSession.user} />
-            <Dashboard recentMenus={recentMenus} />
+            <Dashboard menusByPeriod={menusByPeriod} />
         </>
     )
 }
