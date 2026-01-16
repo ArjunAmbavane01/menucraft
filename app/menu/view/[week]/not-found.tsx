@@ -9,12 +9,12 @@ export default function NotFound() {
             <Card className="w-full max-w-md">
                 <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                     <FileQuestion className="size-12 stroke-1 text-muted-foreground mb-4" />
-                    <h1 className="text-2xl font-bold mb-2">Menu Not Found</h1>
+                    <h1 className="text-2xl font-normal mb-2">Menu Not Found</h1>
                     <p className="text-muted-foreground mb-6">
                         The menu you're looking for doesn't exist or hasn't been published yet.
                     </p>
                     <Button asChild variant="outline">
-                        <Link href="/">Go Home</Link>
+                        <Link href="/dashboard">Go Home</Link>
                     </Button>
                 </CardContent>
             </Card>

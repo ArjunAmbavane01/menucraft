@@ -10,7 +10,6 @@ interface PageProps {
 export default async function ViewMenuPage({ params }: PageProps) {
     const { week } = await params;
 
-    // Validate week format
     try {
         parseWeekDate(week);
     } catch {

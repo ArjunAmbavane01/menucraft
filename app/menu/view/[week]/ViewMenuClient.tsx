@@ -4,6 +4,9 @@ import { MenuTable } from "@/components/menu/MenuTable";
 import { WeekHeader } from "@/components/menu/WeekHeader";
 import { WeeklyMenu, MenuData } from "@/types/menu";
 import { formatWeekDate, parseWeekDate } from "@/lib/week-utils";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 interface ViewMenuClientProps {
     menu: WeeklyMenu;
@@ -14,20 +17,18 @@ export default function ViewMenuClient({
     menu,
     dishesByCategory: rawDishesByCategory,
 }: ViewMenuClientProps) {
-    // menu.weekStartDate is stored as YYYY-MM-DD in database, convert to week format (dd-mm-yyyy) for WeekHeader
+
+    const router = useRouter();
+
     const weekStartDate = formatWeekDate(new Date(menu.weekStartDate));
 
-    // Convert to proper format
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {} as any;
     for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
         dishesByCategory[category] = dishes;
     }
 
-    // Extract menu data, removing meta if it exists
     const menuData = { ...menu.data };
-    if (menuData.meta) {
-        delete (menuData as any).meta;
-    }
+    if (menuData.meta) delete (menuData as any).meta;
 
     // Empty lastUsedMap for read-only view (not needed)
     const lastUsedMap: Record<number, string | null> = {};
@@ -35,7 +36,15 @@ export default function ViewMenuClient({
     return (
         <div className="min-h-screen bg-background">
             <div className="container mx-auto max-w-7xl px-6 py-16">
-                <div className="mb-8">
+                <div className="space-y-8 mb-8">
+                    <Button
+                        onClick={() => router.push("/dashboard")}
+                        variant={"outline"}
+                        size={"sm"}
+                    >
+                        <ArrowLeft /> Go Back
+                    </Button>
+
                     <WeekHeader weekStartDate={weekStartDate} />
                 </div>
 

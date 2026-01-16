@@ -10,9 +10,10 @@ import { createMenu } from "@/server/menu/menuActions";
 import { MenuData, Weekday, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
-import { Save, Globe } from "lucide-react";
+import { Save, Globe, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/navbar/navbar";
 import { DishCategory } from "@/types/dishes";
+import { Spinner } from "@/components/ui/spinner";
 
 interface CreateMenuClientProps {
     week: string;
@@ -28,11 +29,11 @@ export default function CreateMenuClient({
     user,
 }: CreateMenuClientProps) {
     const router = useRouter();
-    // week is in dd-mm-yyyy format from URL
-    // WeekHeader expects week format (dd-mm-yyyy), MenuTable expects YYYY-MM-DD
     const weekStartDate = weekToISODate(week);
 
-    // Convert to proper format with Dish type
+    const [savingDraft, setSavingDraft] = useState(false);
+    const [publishing, setPublishing] = useState(false);
+
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
     for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
         dishesByCategory[category] = dishes;
@@ -45,8 +46,6 @@ export default function CreateMenuClient({
         thursday: { isHoliday: false, dishes: {} },
         friday: { isHoliday: false, dishes: {} },
     });
-
-    const [saving, setSaving] = useState(false);
 
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
         setMenuData((prev) => ({
@@ -72,15 +71,14 @@ export default function CreateMenuClient({
     };
 
     const handleSave = async (status: MenuStatus) => {
-        setSaving(true);
+        status === "draft" ? setSavingDraft(true) : setPublishing(true);
         try {
             await createMenu(week, menuData, status);
             toast.success(status === "published" ? "Menu published" : "Draft saved");
-            router.push("/dashboard");
         } catch (error: any) {
             toast.error(error.message || "Failed to save menu");
         } finally {
-            setSaving(false);
+            status === "draft" ? setSavingDraft(false) : setPublishing(false);
         }
     };
 
@@ -88,7 +86,14 @@ export default function CreateMenuClient({
 
     return (
         <div className="container mx-auto max-w-7xl px-6 py-8 pt-24">
-            <div className="mb-8">
+            <div className="space-y-8 mb-8">
+                <Button
+                    onClick={() => router.push("/dashboard")}
+                    variant={"outline"}
+                    size={"sm"}
+                >
+                    <ArrowLeft /> Go Back
+                </Button>
                 <WeekHeader weekStartDate={week} />
             </div>
 
@@ -104,16 +109,16 @@ export default function CreateMenuClient({
                 <Button
                     variant="outline"
                     onClick={() => handleSave("draft")}
-                    disabled={saving}
+                    disabled={savingDraft || publishing}
                 >
-                    <Save className="mr-2 h-4 w-4" />
+                    {savingDraft ? <Spinner /> : <Save className="mr-2 size-4" />}
                     Save Draft
                 </Button>
                 <Button
                     onClick={() => handleSave("published")}
-                    disabled={saving || !canPublish}
+                    disabled={publishing || savingDraft || !canPublish}
                 >
-                    <Globe className="mr-2 h-4 w-4" />
+                    {publishing ? <Spinner /> : <Globe className="mr-2 size-4" />}
                     Publish
                 </Button>
             </div>

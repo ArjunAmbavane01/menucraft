@@ -10,8 +10,19 @@ import { updateMenu } from "@/server/menu/menuActions";
 import { MenuData, Weekday, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
-import { Save, Globe } from "lucide-react";
+import { Save, Globe, ArrowLeft, Lock, AlertTriangle } from "lucide-react";
 import { DishCategory } from "@/types/dishes";
+import { Spinner } from "@/components/ui/spinner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface EditMenuClientProps {
     week: string;
@@ -29,26 +40,29 @@ export default function EditMenuClient({
     user,
 }: EditMenuClientProps) {
     const router = useRouter();
-    // week is in dd-mm-yyyy format from URL
-    // WeekHeader expects week format (dd-mm-yyyy), MenuTable expects YYYY-MM-DD
     const weekStartDate = weekToISODate(week);
 
-    // Convert to proper format
+    const [savingDraft, setSavingDraft] = useState(false);
+    const [publishing, setPublishing] = useState(false);
+    const [unpublishing, setUnpublishing] = useState(false);
+    const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
+
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
     for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
         dishesByCategory[category] = dishes;
     }
 
-    // Extract menu data, removing meta if it exists
     const initialData = { ...initialMenu.data };
-    if (initialData.meta) {
-        delete (initialData as any).meta;
-    }
+    if (initialData.meta) delete (initialData as any).meta;
 
     const [menuData, setMenuData] = useState<MenuData>(initialData as MenuData);
-    const [saving, setSaving] = useState(false);
+
+    const currentStatus = initialMenu.data.meta?.status || initialMenu.status;
+    const isPublished = currentStatus === "published";
 
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
+        if (isPublished) return;
+
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -62,6 +76,8 @@ export default function EditMenuClient({
     };
 
     const handleToggleHoliday = (day: Weekday) => {
+        if (isPublished) return;
+
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -72,26 +88,70 @@ export default function EditMenuClient({
     };
 
     const handleSave = async (status: MenuStatus) => {
-        setSaving(true);
+        status === "draft" ? setSavingDraft(true) : setPublishing(true);
         try {
             await updateMenu(week, menuData, status);
             toast.success(status === "published" ? "Menu published" : "Draft saved");
-            router.push("/dashboard");
         } catch (error: any) {
             toast.error(error.message || "Failed to save menu");
         } finally {
-            setSaving(false);
+            status === "draft" ? setSavingDraft(false) : setPublishing(false);
+        }
+    };
+
+    const handleUnpublish = async () => {
+        setUnpublishing(true);
+        try {
+            await updateMenu(week, menuData, "draft");
+            toast.success("Menu unpublished");
+            router.refresh();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to unpublish menu");
+        } finally {
+            setUnpublishing(false);
+            setShowUnpublishDialog(false);
         }
     };
 
     const canPublish = isMenuComplete(menuData);
-    const currentStatus = initialMenu.data.meta?.status || initialMenu.status;
 
     return (
         <div className="container mx-auto max-w-7xl px-6 py-8 pt-24">
-            <div className="mb-8">
+            <div className="space-y-8 mb-8">
+                <Button
+                    onClick={() => router.push("/dashboard")}
+                    variant={"outline"}
+                    size={"sm"}
+                >
+                    <ArrowLeft /> Go Back
+                </Button>
                 <WeekHeader weekStartDate={week} status={currentStatus} showStatus />
             </div>
+
+            {isPublished && (
+                <div className="mb-6 flex items-center rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <div className="flex items-start gap-3 w-full">
+                        <Lock className="size-5 text-amber-600 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text font-medium text-amber-900">
+                                This menu is published
+                            </p>
+                            <p className="mt-1 text-sm text-amber-700">
+                                Unpublish to make changes. This will remove the menu from public view.
+                            </p>
+                        </div>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowUnpublishDialog(true)}
+                        disabled={unpublishing}
+                        className="shrink-0"
+                    >
+                        {unpublishing ? <Spinner /> : "Unpublish"}
+                    </Button>
+                </div>
+            )}
 
             <MenuTable
                 menu={{ id: initialMenu.id, weekStartDate, data: menuData, status: currentStatus }}
@@ -101,29 +161,73 @@ export default function EditMenuClient({
                 onToggleHoliday={handleToggleHoliday}
             />
 
-            <div className="mt-6 flex items-center justify-end gap-3">
-                <Button
-                    variant="outline"
-                    onClick={() => handleSave("draft")}
-                    disabled={saving}
-                >
-                    <Save className="mr-2 size-4" />
-                    Save Draft
-                </Button>
-                <Button
-                    onClick={() => handleSave("published")}
-                    disabled={saving || !canPublish}
-                >
-                    <Globe className="mr-2 size-4" />
-                    Publish
-                </Button>
-            </div>
+            {!isPublished && (
+                <>
+                    <div className="mt-6 flex items-center justify-end gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => handleSave("draft")}
+                            disabled={savingDraft || publishing}
+                        >
+                            {savingDraft ? <Spinner /> : <Save className="mr-2 size-4" />}
+                            Save Draft
+                        </Button>
+                        <Button
+                            onClick={() => handleSave("published")}
+                            disabled={publishing || savingDraft || !canPublish}
+                        >
+                            {publishing ? <Spinner /> : <Globe className="mr-2 size-4" />}
+                            Publish
+                        </Button>
+                    </div>
 
-            {!canPublish && (
-                <p className="mt-4 text-sm text-muted-foreground text-right">
-                    Complete all required slots to publish
-                </p>
+                    {!canPublish && (
+                        <p className="mt-4 text-sm text-muted-foreground text-right">
+                            Complete all required slots to publish
+                        </p>
+                    )}
+                </>
             )}
+
+            <AlertDialog open={showUnpublishDialog} onOpenChange={setShowUnpublishDialog}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100">
+                                <AlertTriangle className="size-5 text-amber-700" />
+                            </div>
+                            <AlertDialogTitle className="text-lg">
+                                Unpublish menu?
+                            </AlertDialogTitle>
+                        </div>
+                        <AlertDialogDescription className="text-base">
+                            This will remove the menu from public view. Users won't be able to see this week's menu until you publish it again.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2 mt-3">
+                        <AlertDialogCancel disabled={unpublishing}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleUnpublish();
+                            }}
+                            disabled={unpublishing}
+                            className="bg-amber-600 hover:bg-amber-800 focus:ring-amber-600"
+                        >
+                            {unpublishing ? (
+                                <>
+                                    <Spinner />
+                                    Unpublishing...
+                                </>
+                            ) : (
+                                "Unpublish menu"
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

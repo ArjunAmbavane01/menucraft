@@ -95,7 +95,9 @@ export function MenuTable({
                                         const dish = dishes.find((d) => d.id === dishId);
                                         return (
                                             <TableCell key={category} className="text-center">
-                                                {dish ? (
+                                                {isHoliday ? (
+                                                    <span className="text-sm text-muted-foreground text">—</span>
+                                                ) : dish ? (
                                                     <span className="text-sm">{dish.name}</span>
                                                 ) : (
                                                     <span className="text-sm text-muted-foreground">—</span>
