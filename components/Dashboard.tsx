@@ -147,13 +147,13 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                             </TableBody>
                         </Table>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Calendar className="size-12 stroke-1 text-muted-foreground mb-4" />
+                        <div className="flex flex-col items-center justify-center py-5 text-center">
+                            <Calendar className="size-8 stroke-1 text-muted-foreground mb-4" />
                             <h3 className="text-lg font-semibold mb-1">No menu for this week</h3>
                             <p className="text-muted-foreground mb-3">
                                 Create a menu to get started
                             </p>
-                            <Button onClick={handleCreateNextWeek} variant="outline">
+                            <Button onClick={handleCreateNextWeek} variant="default">
                                 <PlusCircle className="size-4 mr-2" />
                                 Create Menu
                             </Button>
@@ -183,7 +183,7 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                             </TableBody>
                         </Table>
                     ) : (
-                        <div className="py-8 text-center text-muted-foreground">
+                        <div className="py-5 text-center text-muted-foreground">
                             No upcoming menus
                         </div>
                     )}
@@ -211,7 +211,7 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                             </TableBody>
                         </Table>
                     ) : (
-                        <div className="py-8 text-center text-muted-foreground">
+                        <div className="py-5 text-center text-muted-foreground">
                             No past menus
                         </div>
                     )}

@@ -18,8 +18,8 @@ export function WeekHeader({
     return (
         <div className="flex items-center justify-between">
             <div className="space-y-3">
-                <h1 className="text-3xl font-semibold">Weekly Menu</h1>
-                <p className="text-lg text-muted-foreground">
+                <h1 className="text-3xl font-normal">Weekly Menu</h1>
+                <p className="text-muted-foreground">
                     Week: {formatWeekRange(weekStartDate)}
                 </p>
             </div>
