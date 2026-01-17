@@ -5,7 +5,7 @@ import { dishes, dishUsage, weeklyMenus } from "@/db/schema";
 import { MenuData, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { eq } from "drizzle-orm";
 import { weekToISODate } from "@/lib/week-utils";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -14,22 +14,27 @@ import { extractDishIds } from "@/lib/extractDishIds";
 /**
  * Get all dishes grouped by category
  */
-export async function getAllDishesByCategory() {
-    const allDishes = await db.select().from(dishes);
+export const getAllDishesByCategory = unstable_cache(
+    async () => {
+        const allDishes = await db.select().from(dishes);
+        const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
 
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
-
-    for (const dish of allDishes) {
-        if (!dishesByCategory[dish.category]) dishesByCategory[dish.category] = [];
-        dishesByCategory[dish.category].push({
-            id: dish.id,
-            name: dish.name,
-            category: dish.category,
-        });
+        for (const dish of allDishes) {
+            if (!dishesByCategory[dish.category]) dishesByCategory[dish.category] = [];
+            dishesByCategory[dish.category].push({
+                id: dish.id,
+                name: dish.name,
+                category: dish.category,
+            });
+        }
+        return dishesByCategory;
+    },
+    ['dishes-by-category'],
+    {
+        revalidate: 86400 * 7, // 7 days
+        tags: ['dishes']
     }
-
-    return dishesByCategory;
-}
+);
 
 /**
  * Get menu by week (format: dd-mm-yyyy)
@@ -95,6 +100,8 @@ export async function createMenu(
         );
     }
 
+    revalidateTag('menus',{ expire: 0 });
+    revalidateTag('dish-usage',{ expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);
@@ -150,6 +157,8 @@ export async function updateMenu(
         );
     }
 
+    revalidateTag('menus',{ expire: 0 });
+    revalidateTag('dish-usage',{ expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);
