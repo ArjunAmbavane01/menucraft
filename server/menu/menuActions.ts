@@ -6,23 +6,24 @@ import { MenuData, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { eq } from "drizzle-orm";
 import { weekToISODate } from "@/lib/week-utils";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 /**
  * Get all dishes grouped by category
  */
 export async function getAllDishesByCategory() {
-    const all = await db.select().from(dishes);
+    const allDishes = await db.select().from(dishes);
 
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
 
-    for (const d of all) {
-        if (!dishesByCategory[d.category]) {
-            dishesByCategory[d.category] = [];
-        }
-        dishesByCategory[d.category].push({
-            id: d.id,
-            name: d.name,
-            category: d.category,
+    for (const dish of allDishes) {
+        if (!dishesByCategory[dish.category]) dishesByCategory[dish.category] = [];
+        dishesByCategory[dish.category].push({
+            id: dish.id,
+            name: dish.name,
+            category: dish.category,
         });
     }
 
@@ -52,6 +53,13 @@ export async function createMenu(
     data: MenuData,
     status: MenuStatus = "draft"
 ): Promise<WeeklyMenu> {
+
+    const userSession = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!userSession) redirect("/signin");
+
     const weekStartDate = weekToISODate(week);
 
     // Add status to data.meta
@@ -91,6 +99,13 @@ export async function updateMenu(
     data: MenuData,
     status: MenuStatus = "draft"
 ): Promise<WeeklyMenu> {
+
+    const userSession = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    if (!userSession) redirect("/signin");
+
     const weekStartDate = weekToISODate(week);
 
     // Add status to data.meta

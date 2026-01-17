@@ -34,14 +34,8 @@ export default async function EditMenuPage({ params }: PageProps) {
     }
 
     // Fetch dishes and last used map
-    const dishesByCategoryRaw = await getAllDishesByCategory();
+    const dishesByCategory = await getAllDishesByCategory();
     const lastUsedMap = await getDishLastUsedMap();
-
-    // Convert to Dish[] format for each category
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
-    for (const [category, dishes] of Object.entries(dishesByCategoryRaw)) {
-        dishesByCategory[category] = dishes;
-    }
 
     return (
         <>

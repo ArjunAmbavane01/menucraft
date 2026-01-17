@@ -27,21 +27,13 @@ export default async function CreateMenuPage({ params }: PageProps) {
         redirect("/dashboard");
     }
 
-    // Check if menu already exists - redirect to edit
+    // Check if menu already exists
     const existingMenu = await getMenuByWeek(week);
-    if (existingMenu) {
-        redirect(`/menu/edit/${week}`);
-    }
+    if (existingMenu) redirect(`/menu/edit/${week}`);
 
     // Fetch dishes and last used map
-    const dishesByCategoryRaw = await getAllDishesByCategory();
+    const dishesByCategory = await getAllDishesByCategory();
     const lastUsedMap = await getDishLastUsedMap();
-
-    // Convert to Dish[] format for each category
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
-    for (const [category, dishes] of Object.entries(dishesByCategoryRaw)) {
-        dishesByCategory[category] = dishes;
-    }
 
     return (
         <>
