@@ -95,7 +95,7 @@ export function DishSelect({
                     <div className="flex flex-col">
                         {/* Search Input */}
                         <div className="flex items-center border-b px-3">
-                            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                            <Search className="mr-2 size-4 shrink-0 opacity-50" />
                             <Input
                                 placeholder="Search dishes..."
                                 value={search}
@@ -105,7 +105,7 @@ export function DishSelect({
                         </div>
 
                         {/* Dishes List */}
-                        <ScrollArea className="h-[300px]">
+                        <ScrollArea className="max-h-75 overflow-y-auto">
                             <div className="p-1">
                                 {filteredDishes.length === 0 ? (
                                     <div className="py-6 text-center text-sm text-muted-foreground">

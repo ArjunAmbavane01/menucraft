@@ -23,6 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { WhatsAppCopyButton } from "@/components/menu/WhatsAppCopyBtn";
 
 interface EditMenuClientProps {
     week: string;
@@ -156,33 +157,37 @@ export default function EditMenuClient({
                 onToggleHoliday={handleToggleHoliday}
             />
 
-            {!isPublished && (
-                <>
-                    <div className="flex items-center justify-end gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={() => handleSave("draft")}
-                            disabled={savingDraft || publishing}
-                        >
-                            {savingDraft ? <Spinner /> : <Save className="mr-2 size-4" />}
-                            Save Draft
-                        </Button>
-                        <Button
-                            onClick={() => handleSave("published")}
-                            disabled={publishing || savingDraft || !canPublish}
-                        >
-                            {publishing ? <Spinner /> : <Globe className="mr-2 size-4" />}
-                            Publish
-                        </Button>
-                    </div>
+            <div className="flex items-center justify-between gap-3">
+                <WhatsAppCopyButton
+                    menuData={menuData}
+                    dishesByCategory={dishesByCategory}
+                />
+                {!isPublished && (
+                    <>
+                        <div className="flex items-center justify-end gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => handleSave("draft")}
+                                disabled={savingDraft || publishing}
+                            >
+                                {savingDraft ? <Spinner /> : <Save />}
+                                Save Draft
+                            </Button>
+                            <Button
+                                onClick={() => handleSave("published")}
+                                disabled={publishing || savingDraft || !canPublish}
+                            >
+                                {publishing ? <Spinner /> : <Globe />}
+                                Publish
+                            </Button>
+                        </div>
 
-                    {!canPublish && (
                         <p className="text-sm text-muted-foreground text-right">
                             Complete all required slots to publish
                         </p>
-                    )}
-                </>
-            )}
+                    </>
+                )}
+            </div>
 
             <AlertDialog open={showUnpublishDialog} onOpenChange={setShowUnpublishDialog}>
                 <AlertDialogContent className="max-w-md">

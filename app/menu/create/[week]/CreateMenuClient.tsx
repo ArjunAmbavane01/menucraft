@@ -92,7 +92,7 @@ export default function CreateMenuClient({
     const canPublish = isMenuComplete(menuData);
 
     return (
-        <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-8 pt-24">
+        <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-28">
             <WeekHeader
                 weekStartDate={week}
                 showStatus
@@ -115,14 +115,14 @@ export default function CreateMenuClient({
                     onClick={() => handleSave("draft")}
                     disabled={savingDraft || publishing}
                 >
-                    {savingDraft ? <Spinner /> : <Save className="mr-2 size-4" />}
+                    {savingDraft ? <Spinner /> : <Save />}
                     Save Draft
                 </Button>
                 <Button
                     onClick={() => handleSave("published")}
                     disabled={publishing || savingDraft || !canPublish}
                 >
-                    {publishing ? <Spinner /> : <Globe className="mr-2 size-4" />}
+                    {publishing ? <Spinner /> : <Globe />}
                     Publish
                 </Button>
             </div>
