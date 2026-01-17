@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -10,8 +10,7 @@ import { createMenu } from "@/server/menu/menuActions";
 import { MenuData, Weekday, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
-import { Save, Globe, ArrowLeft } from "lucide-react";
-import Navbar from "@/components/navbar/navbar";
+import { Save, Globe } from "lucide-react";
 import { DishCategory } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -33,6 +32,9 @@ export default function CreateMenuClient({
 
     const [savingDraft, setSavingDraft] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState<MenuStatus>("draft");
+    const [hasEverSaved, setHasEverSaved] = useState(false);
 
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
     for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
@@ -48,6 +50,7 @@ export default function CreateMenuClient({
     });
 
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
+        setHasUnsavedChanges(true);
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -61,6 +64,7 @@ export default function CreateMenuClient({
     };
 
     const handleToggleHoliday = (day: Weekday) => {
+        setHasUnsavedChanges(true);
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -75,6 +79,9 @@ export default function CreateMenuClient({
         try {
             await createMenu(week, menuData, status);
             toast.success(status === "published" ? "Menu published" : "Draft saved");
+            setHasUnsavedChanges(false);
+            setCurrentStatus(status);
+            setHasEverSaved(true);
         } catch (error: any) {
             toast.error(error.message || "Failed to save menu");
         } finally {
@@ -85,17 +92,14 @@ export default function CreateMenuClient({
     const canPublish = isMenuComplete(menuData);
 
     return (
-        <div className="container mx-auto max-w-7xl px-6 py-8 pt-24">
-            <div className="space-y-8 mb-8">
-                <Button
-                    onClick={() => router.push("/dashboard")}
-                    variant={"outline"}
-                    size={"sm"}
-                >
-                    <ArrowLeft /> Go Back
-                </Button>
-                <WeekHeader weekStartDate={week} />
-            </div>
+        <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-8 pt-24">
+            <WeekHeader
+                weekStartDate={week}
+                showStatus
+                status={currentStatus}
+                hasUnsavedChanges={!hasEverSaved || hasUnsavedChanges}
+            />
+
 
             <MenuTable
                 menu={{ id: 0, weekStartDate, data: menuData, status: "draft" }}
@@ -105,7 +109,7 @@ export default function CreateMenuClient({
                 onToggleHoliday={handleToggleHoliday}
             />
 
-            <div className="mt-6 flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-3">
                 <Button
                     variant="outline"
                     onClick={() => handleSave("draft")}
@@ -124,7 +128,7 @@ export default function CreateMenuClient({
             </div>
 
             {!canPublish && (
-                <p className="mt-4 text-sm text-muted-foreground text-right">
+                <p className="text-sm text-muted-foreground text-right">
                     Complete all required slots to publish
                 </p>
             )}

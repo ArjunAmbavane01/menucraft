@@ -10,7 +10,7 @@ import { updateMenu } from "@/server/menu/menuActions";
 import { MenuData, Weekday, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
-import { Save, Globe, ArrowLeft, Lock, AlertTriangle } from "lucide-react";
+import { Save, Globe, Lock, AlertTriangle } from "lucide-react";
 import { DishCategory } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -116,27 +116,18 @@ export default function EditMenuClient({
     const canPublish = isMenuComplete(menuData);
 
     return (
-        <div className="container mx-auto max-w-7xl px-6 py-8 pt-24">
-            <div className="space-y-8 mb-8">
-                <Button
-                    onClick={() => router.push("/dashboard")}
-                    variant={"outline"}
-                    size={"sm"}
-                >
-                    <ArrowLeft /> Go Back
-                </Button>
-                <WeekHeader weekStartDate={week} status={currentStatus} showStatus />
-            </div>
+        <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-28">
+            <WeekHeader weekStartDate={week} status={currentStatus} showStatus />
 
             {isPublished && (
-                <div className="mb-6 flex items-center rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center rounded border border-amber-200 bg-amber-50 p-4">
                     <div className="flex items-start gap-3 w-full">
                         <Lock className="size-5 text-amber-600 mt-0.5 shrink-0" />
                         <div className="flex-1">
                             <p className="text font-medium text-amber-900">
                                 This menu is published
                             </p>
-                            <p className="mt-1 text-sm text-amber-700">
+                            <p className="text-sm text-amber-700">
                                 Unpublish to make changes. This will remove the menu from public view.
                             </p>
                         </div>
@@ -163,7 +154,7 @@ export default function EditMenuClient({
 
             {!isPublished && (
                 <>
-                    <div className="mt-6 flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3">
                         <Button
                             variant="outline"
                             onClick={() => handleSave("draft")}
@@ -182,7 +173,7 @@ export default function EditMenuClient({
                     </div>
 
                     {!canPublish && (
-                        <p className="mt-4 text-sm text-muted-foreground text-right">
+                        <p className="text-sm text-muted-foreground text-right">
                             Complete all required slots to publish
                         </p>
                     )}
@@ -216,14 +207,8 @@ export default function EditMenuClient({
                             disabled={unpublishing}
                             className="bg-amber-600 hover:bg-amber-800 focus:ring-amber-600"
                         >
-                            {unpublishing ? (
-                                <>
-                                    <Spinner />
-                                    Unpublishing...
-                                </>
-                            ) : (
-                                "Unpublish menu"
-                            )}
+                            {unpublishing && <Spinner />}
+                            Unpublish menu
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

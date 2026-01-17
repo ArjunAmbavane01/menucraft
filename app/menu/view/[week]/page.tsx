@@ -18,9 +18,7 @@ export default async function ViewMenuPage({ params }: PageProps) {
 
     // Get menu
     const menu = await getMenuByWeek(week);
-    if (!menu) {
-        notFound();
-    }
+    if (!menu) notFound();
 
     // Only show published menus in public view
     const status = menu.data.meta?.status || menu.status;

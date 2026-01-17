@@ -4,15 +4,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { WeeklyMenu, MenuStatus } from "@/types/menu";
-import { formatWeekRange, formatWeekDate, getNextWeekStart, getWeekStart } from "@/lib/week-utils";
+import { formatWeekRange, formatWeekDate, getNextWeekStart } from "@/lib/week-utils";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, CalendarIcon, PlusCircle, Edit, Eye } from "lucide-react";
+import { Calendar, CalendarIcon, PlusCircle, Edit, Eye, Check, Link as UrlLink } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 interface DashboardProps {
     menusByPeriod: {
@@ -24,8 +31,10 @@ interface DashboardProps {
 
 export default function DashboardPage({ menusByPeriod }: DashboardProps) {
     const router = useRouter();
+
     const [datePickerOpen, setDatePickerOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [copiedId, setCopiedId] = useState<number | null>(null);
 
     const handleCreateNextWeek = () => {
         const nextWeekStart = getNextWeekStart();
@@ -56,9 +65,30 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
         );
     };
 
+    const handleCopyLink = async (menu: WeeklyMenu) => {
+        const weekFormat = formatWeekDate(new Date(menu.weekStartDate));
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL!;
+        const url = `${baseUrl}/menu/view/${weekFormat}`;
+
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopiedId(menu.id);
+            toast.success("Menu link copied");
+
+            // Reset icon after 2 seconds
+            setTimeout(() => {
+                setCopiedId(null);
+            }, 2000);
+        } catch (err) {
+            toast.error("Failed to copy link");
+        }
+    };
+
     const renderMenuRow = (menu: WeeklyMenu) => {
         const weekFormat = formatWeekDate(new Date(menu.weekStartDate));
         const menuExists = true; // Menu is passed in, so it exists
+        const isPublished = menu.status === "published";
+        const isCopied = copiedId === menu.id;
 
         return (
             <TableRow key={menu.id}>
@@ -68,13 +98,32 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                 <TableCell>{getStatusBadge(menu.status)}</TableCell>
                 <TableCell>
                     <div className="flex items-center gap-2">
-                        <Link
-                            href={`/menu/view/${weekFormat}`}
-                            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-8")}
-                        >
-                            <Eye className="size-4 mr-1" />
-                            View
-                        </Link>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span>
+                                        <Link
+                                            href={`/menu/view/${weekFormat}`}
+                                            aria-disabled={!isPublished}
+                                            className={cn(
+                                                buttonVariants({ variant: "outline", size: "sm" }),
+                                                "h-8",
+                                                !isPublished && "pointer-events-none opacity-50"
+                                            )}
+                                        >
+                                            <Eye className="size-4 mr-1" />
+                                            View
+                                        </Link>
+                                    </span>
+
+                                </TooltipTrigger>
+                                {!isPublished && (
+                                    <TooltipContent>
+                                        <p>Publish to view the menu</p>
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        </TooltipProvider>
                         {menuExists && (
                             <Link
                                 href={`/menu/edit/${weekFormat}`}
@@ -83,6 +132,26 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                                 <Edit className="size-4 mr-1" />
                                 Edit
                             </Link>
+                        )}
+                        {isPublished && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+
+                                        <Button
+                                            variant="outline"
+                                            size="icon-sm"
+                                            onClick={() => handleCopyLink(menu)}
+                                            className="transition-all"
+                                        >
+                                            {isCopied ? <Check className="text-green-500" /> : <UrlLink />}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Copy menu link</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                     </div>
                 </TableCell>
