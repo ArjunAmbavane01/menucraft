@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { dishes, weeklyMenus } from "@/db/schema";
+import { dishes, dishUsage, weeklyMenus } from "@/db/schema";
 import { MenuData, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { eq } from "drizzle-orm";
 import { weekToISODate } from "@/lib/week-utils";
@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { extractDishIds } from "@/lib/extractDishIds";
 
 /**
  * Get all dishes grouped by category
@@ -83,6 +84,17 @@ export async function createMenu(
         })
         .returning();
 
+    const dishIds = extractDishIds(menuDataWithMeta);
+
+    if (dishIds.length > 0) {
+        await db.insert(dishUsage).values(
+            dishIds.map((id) => ({
+                dishId: id,
+                weekStartDate,
+            }))
+        );
+    }
+
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);
@@ -123,8 +135,19 @@ export async function updateMenu(
         .where(eq(weeklyMenus.weekStartDate, weekStartDate))
         .returning();
 
-    if (!updatedMenu) {
-        throw new Error("Menu not found");
+    if (!updatedMenu) throw new Error("Menu not found");
+
+    await db.delete(dishUsage).where(eq(dishUsage.weekStartDate, weekStartDate));
+
+    const dishIds = extractDishIds(menuDataWithMeta);
+
+    if (dishIds.length > 0) {
+        await db.insert(dishUsage).values(
+            dishIds.map((id) => ({
+                dishId: id,
+                weekStartDate,
+            }))
+        );
     }
 
     revalidatePath("/dashboard");

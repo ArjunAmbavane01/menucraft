@@ -1,4 +1,4 @@
-import { pgTable, serial, text, date, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, date, jsonb, integer } from "drizzle-orm/pg-core";
 
 export const dishes = pgTable("dishes", {
   id: serial("id").primaryKey(),
@@ -11,4 +11,10 @@ export const weeklyMenus = pgTable("weekly_menus", {
   weekStartDate: date("week_start_date").notNull().unique(),
   data: jsonb("data").notNull(),
   status: text("status").notNull().default("draft"), // 'draft' | 'published'
+});
+
+export const dishUsage = pgTable("dish_usage", {
+  id: serial("id").primaryKey(),
+  dishId: integer("dish_id").notNull().references(() => dishes.id),
+  weekStartDate: date("week_start_date").notNull(),
 });

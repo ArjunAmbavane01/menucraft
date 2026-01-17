@@ -29,8 +29,8 @@ interface DashboardProps {
         upcoming: WeeklyMenu[];
         past: WeeklyMenu[];
     };
-    dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
-    lastUsedMap: Record<number, string | null>;
+    dishesByCategory: Record<string, { id: number; name: string; category: string }[]> | null;
+    lastUsedMap: Record<number, string | null> | null;
 }
 
 export default function DashboardPage({
@@ -265,8 +265,8 @@ export default function DashboardPage({
                             data: menusByPeriod.thisWeek.data,
                             status: menusByPeriod.thisWeek.status
                         }}
-                        dishesByCategory={dishesByCategory}
-                        lastUsedMap={lastUsedMap}
+                        dishesByCategory={dishesByCategory!}
+                        lastUsedMap={lastUsedMap!}
                         onDishChange={() => { }}
                         onToggleHoliday={() => { }}
                         readOnly

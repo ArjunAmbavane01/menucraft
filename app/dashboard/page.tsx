@@ -6,6 +6,7 @@ import Navbar from '@/components/navbar/navbar';
 import Dashboard from '@/components/Dashboard';
 import { getAllDishesByCategory } from '@/server/menu/menuActions';
 import { getDishLastUsedMap } from '@/server/menu/getDishLastUsedMap';
+import { weekToISODate } from '@/lib/week-utils';
 
 export default async function page() {
     const userSession = await auth.api.getSession({
@@ -15,17 +16,23 @@ export default async function page() {
 
     // Fetch menus grouped by period
     const menusByPeriod = await getMenusByPeriod();
+    const thisWeekMenu = menusByPeriod.thisWeek;
 
-    // Fetch dishes and last used map
-    const dishesByCategoryRaw = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap();
+    let dishesByCategory = null;
+    let lastUsedMap = null;
+
+    if (thisWeekMenu) {
+        // Fetch dishes and last used map
+        dishesByCategory = await getAllDishesByCategory();
+        lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(thisWeekMenu.weekStartDate)));
+    }
 
     return (
         <>
             <Navbar user={userSession.user} />
             <Dashboard
                 menusByPeriod={menusByPeriod}
-                dishesByCategory={dishesByCategoryRaw}
+                dishesByCategory={dishesByCategory}
                 lastUsedMap={lastUsedMap}
             />
         </>

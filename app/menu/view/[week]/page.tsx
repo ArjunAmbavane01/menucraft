@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMenuByWeek, getAllDishesByCategory } from "@/server/menu/menuActions";
-import { parseWeekDate } from "@/lib/week-utils";
+import { parseWeekDate, weekToISODate } from "@/lib/week-utils";
 import ViewMenuClient from "./ViewMenuClient";
 import { getDishLastUsedMap } from "@/server/menu/getDishLastUsedMap";
 
@@ -27,7 +27,7 @@ export default async function ViewMenuPage({ params }: PageProps) {
 
     // Fetch dishes and last used map
     const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap();
+    const lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(week)));
 
     return (
         <ViewMenuClient

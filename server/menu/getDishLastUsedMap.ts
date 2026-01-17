@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "@/db";
-import { weeklyMenus } from "@/db/schema";
-import { MenuData, Weekday } from "@/types/menu";
-import { parseISO, compareDesc, differenceInWeeks, startOfWeek } from "date-fns";
+import { dishUsage } from "@/db/schema";
+import { differenceInWeeks, startOfWeek } from "date-fns";
+import { max } from "drizzle-orm";
 
 /**
  * Computes when each dish was last used in any previous menu.
@@ -11,54 +11,31 @@ import { parseISO, compareDesc, differenceInWeeks, startOfWeek } from "date-fns"
  * String format: "2 weeks ago" or "this week"
  * null if never used
  */
-export async function getDishLastUsedMap(): Promise<Record<number, string | null>> {
-  const allMenus = await db
+export async function getDishLastUsedMap(weekStartDate: Date): Promise<Record<number, string>> {
+  const rows = await db
     .select({
-      weekStartDate: weeklyMenus.weekStartDate,
-      data: weeklyMenus.data,
+      dishId: dishUsage.dishId,
+      lastUsed: max(dishUsage.weekStartDate),
     })
-    .from(weeklyMenus);
+    .from(dishUsage)
+    .groupBy(dishUsage.dishId);
 
-  const dishLastUsed: Record<number, Date | null> = {};
-  const thisWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const thisWeekStart = startOfWeek(weekStartDate, { weekStartsOn: 1 });
+  const result: Record<number, string> = {};
 
-  // Process all menus to find the most recent usage of each dish
-  for (const menu of allMenus) {
-    const weekStartDate = parseISO(menu.weekStartDate as string);
-    const menuData = menu.data as MenuData;
+  for (const row of rows) {
+    const date = new Date(row.lastUsed!);
+    const weeksAgo = differenceInWeeks(thisWeekStart, date);
 
-    // Scan each day in the menu (skip meta if exists)
-    const weekdays: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-    for (const day of weekdays) {
-      const dayData = menuData[day];
-
-      if (!dayData || dayData.isHoliday) continue;
-
-      // Check each dish in this day
-      if (dayData.dishes) {
-        for (const dishId of Object.values(dayData.dishes)) {
-          if (!dishId) continue;
-
-          const existingDate = dishLastUsed[dishId];
-
-          // Update if this menu is more recent
-          if (!existingDate || compareDesc(weekStartDate, existingDate) > 0) {
-            dishLastUsed[dishId] = weekStartDate;
-          }
-        }
-      }
-    }
-  }
-
-  // Convert dates to "X weeks ago" format
-  const result: Record<number, string | null> = {};
-  for (const [dishId, date] of Object.entries(dishLastUsed)) {
-    if (!date) {
-      result[Number(dishId)] = null;
+    if (weeksAgo === 0) {
+      result[row.dishId] = "this week";
+    } else if (weeksAgo > 0) {
+      result[row.dishId] = `${weeksAgo} week${weeksAgo > 1 ? "s" : ""} ago`;
     } else {
-      const weeksAgo = differenceInWeeks(thisWeekStart, date);
-      result[Number(dishId)] = weeksAgo === 0 ? "this week" : `${weeksAgo} week${weeksAgo > 1 ? "s" : ""} ago`;
+      const w = Math.abs(weeksAgo);
+      result[row.dishId] = `in ${w} week${w > 1 ? "s" : ""}`;
     }
+
   }
 
   return result;

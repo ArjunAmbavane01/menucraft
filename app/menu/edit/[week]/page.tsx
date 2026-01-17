@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getMenuByWeek, getAllDishesByCategory } from "@/server/menu/menuActions";
 import { getDishLastUsedMap } from "@/server/menu/getDishLastUsedMap";
-import { parseWeekDate } from "@/lib/week-utils";
+import { parseWeekDate, weekToISODate } from "@/lib/week-utils";
 import EditMenuClient from "./EditMenuClient";
 import Navbar from "@/components/navbar/navbar";
 
@@ -35,7 +35,7 @@ export default async function EditMenuPage({ params }: PageProps) {
 
     // Fetch dishes and last used map
     const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap();
+    const lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(week)));
 
     return (
         <>
