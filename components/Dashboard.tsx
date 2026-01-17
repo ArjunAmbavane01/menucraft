@@ -19,7 +19,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MenuTable } from "@/components/menu/MenuTable";
 import { toast } from "sonner";
+import { Separator } from "./ui/separator";
 
 interface DashboardProps {
     menusByPeriod: {
@@ -27,9 +29,15 @@ interface DashboardProps {
         upcoming: WeeklyMenu[];
         past: WeeklyMenu[];
     };
+    dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
+    lastUsedMap: Record<number, string | null>;
 }
 
-export default function DashboardPage({ menusByPeriod }: DashboardProps) {
+export default function DashboardPage({
+    menusByPeriod,
+    dishesByCategory,
+    lastUsedMap
+}: DashboardProps) {
     const router = useRouter();
 
     const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -161,9 +169,9 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
 
     return (
         <section className="flex flex-col gap-10 container max-w-7xl mx-auto py-16 pt-24">
-            <div className="space-y-3">
-                <h1 className="text-3xl font-semibold">Weekly Menus</h1>
-                <p className="text-lg text-muted-foreground">
+            <div className="space-y-2">
+                <h1 className="text-2xl font-medium">Weekly Menus</h1>
+                <p className="text-muted-foreground">
                     Plan and manage your weekly meal schedules
                 </p>
             </div>
@@ -196,55 +204,111 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
             </div>
 
             {/* This Week's Menu */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>This Week</CardTitle>
-                    <CardDescription>Menu for the current week</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {menusByPeriod.thisWeek ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Week Range</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {renderMenuRow(menusByPeriod.thisWeek)}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-5 text-center">
-                            <Calendar className="size-8 stroke-1 text-muted-foreground mb-4" />
+            {menusByPeriod.thisWeek ? (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-normal tracking-tight">This Week's Menu</h2>
+                            <p className="text-muted-foreground mt-1">
+                                {formatWeekRange(formatWeekDate(new Date(menusByPeriod.thisWeek.weekStartDate)))}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className={`flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm ${menusByPeriod.thisWeek.status === "published"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                                : "border-slate-200 bg-slate-50 text-slate-700"
+                                }`}>
+                                <span className={`h-2 w-2 rounded-full ${menusByPeriod.thisWeek.status === "published"
+                                    ? "bg-emerald-500"
+                                    : "bg-slate-400"
+                                    }`} />
+                                <span className="font-medium">
+                                    {menusByPeriod.thisWeek.status === "published" ? "Published" : "Draft"}
+                                </span>
+                            </div>
+                            <Link
+                                href={`/menu/edit/${formatWeekDate(new Date(menusByPeriod.thisWeek.weekStartDate))}`}
+                                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                            >
+                                <Edit className="size-4 mr-1" />
+                                Edit
+                            </Link>
+                            {menusByPeriod.thisWeek.status === "published" && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleCopyLink(menusByPeriod.thisWeek!)}
+                                            >
+                                                {copiedId === menusByPeriod.thisWeek.id ? (
+                                                    <Check className="size-4 text-green-500" />
+                                                ) : (
+                                                    <UrlLink className="size-4" />
+                                                )}
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Copy menu link</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                        </div>
+                    </div>
+
+                    <MenuTable
+                        menu={{
+                            id: menusByPeriod.thisWeek.id,
+                            weekStartDate: menusByPeriod.thisWeek.weekStartDate,
+                            data: menusByPeriod.thisWeek.data,
+                            status: menusByPeriod.thisWeek.status
+                        }}
+                        dishesByCategory={dishesByCategory}
+                        lastUsedMap={lastUsedMap}
+                        onDishChange={() => { }}
+                        onToggleHoliday={() => { }}
+                        readOnly
+                    />
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <Calendar className="size-12 stroke-1 text-muted-foreground/40 mb-4" />
                             <h3 className="text-lg font-semibold">No menu for this week</h3>
-                            <p className="text-muted-foreground mb-5">
+                            <p className="text-sm text-muted-foreground mb-6">
                                 Create a menu to get started
                             </p>
-                            <Button onClick={handleCreateNextWeek} variant="default">
+                            <Button onClick={handleCreateNextWeek} size="lg">
                                 <PlusCircle />
                                 Create Menu
                             </Button>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            )}
+
+            <Separator />
 
             {/* Upcoming Menus */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Upcoming Menus</CardTitle>
-                    <CardDescription>Future weekly menus</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {menusByPeriod.upcoming.length > 0 ? (
+            <div className="space-y-6">
+                <div>
+                    <h2 className="text-2xl font-normal tracking-tight">Upcoming</h2>
+                    <p className="text-muted-foreground mt-1">
+                        Future weekly menus
+                    </p>
+                </div>
+
+                {menusByPeriod.upcoming.length > 0 ? (
+                    <div className="rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Week Range</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
+                                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableHead className="font-semibold">Week Range</TableHead>
+                                    <TableHead className="font-semibold">Status</TableHead>
+                                    <TableHead className="font-semibold">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -253,28 +317,35 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                                     .map(renderMenuRow)}
                             </TableBody>
                         </Table>
-                    ) : (
-                        <div className="py-5 text-center text-muted-foreground">
+                    </div>
+                ) : (
+                    <div className="rounded-lg border border-dashed bg-muted/20 py-12 text-center">
+                        <p className="text-sm text-muted-foreground">
                             No upcoming menus
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <Separator />
 
             {/* Past Menus */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Past Menus</CardTitle>
-                    <CardDescription>Previously created menus</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {menusByPeriod.past.length > 0 ? (
+            <div className="space-y-6">
+                <div>
+                    <h2 className="text-2xl font-normal tracking-tight">Past Menus</h2>
+                    <p className="text-muted-foreground mt-1">
+                        Previously created menus
+                    </p>
+                </div>
+
+                {menusByPeriod.past.length > 0 ? (
+                    <div className="rounded-lg border overflow-hidden">
                         <Table>
                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Week Range</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
+                                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                    <TableHead className="font-semibold">Week Range</TableHead>
+                                    <TableHead className="font-semibold">Status</TableHead>
+                                    <TableHead className="font-semibold">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -284,13 +355,15 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                                     .map(renderMenuRow)}
                             </TableBody>
                         </Table>
-                    ) : (
-                        <div className="py-5 text-center text-muted-foreground">
+                    </div>
+                ) : (
+                    <div className="rounded-lg border border-dashed bg-muted/20 py-12 text-center">
+                        <p className="text-sm text-muted-foreground">
                             No past menus
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        </p>
+                    </div>
+                )}
+            </div>
         </section>
     );
 }
