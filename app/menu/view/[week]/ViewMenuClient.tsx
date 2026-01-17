@@ -11,11 +11,13 @@ import { ArrowLeft } from "lucide-react";
 interface ViewMenuClientProps {
     menu: WeeklyMenu;
     dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
+    lastUsedMap: Record<number, string | null>;
 }
 
 export default function ViewMenuClient({
     menu,
     dishesByCategory: rawDishesByCategory,
+    lastUsedMap,
 }: ViewMenuClientProps) {
 
     const router = useRouter();
@@ -30,23 +32,10 @@ export default function ViewMenuClient({
     const menuData = { ...menu.data };
     if (menuData.meta) delete (menuData as any).meta;
 
-    // Empty lastUsedMap for read-only view (not needed)
-    const lastUsedMap: Record<number, string | null> = {};
-
     return (
         <div className="min-h-screen bg-background">
-            <div className="container mx-auto max-w-7xl px-6 py-16">
-                <div className="space-y-8 mb-8">
-                    <Button
-                        onClick={() => router.push("/dashboard")}
-                        variant={"outline"}
-                        size={"sm"}
-                    >
-                        <ArrowLeft /> Go Back
-                    </Button>
-
-                    <WeekHeader weekStartDate={weekStartDate} />
-                </div>
+            <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-16">
+                <WeekHeader weekStartDate={weekStartDate} />
 
                 <MenuTable
                     menu={{ id: menu.id, weekStartDate: menu.weekStartDate, data: menuData as MenuData, status: "published" }}

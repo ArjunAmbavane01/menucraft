@@ -46,6 +46,7 @@ export default function EditMenuClient({
     const [publishing, setPublishing] = useState(false);
     const [unpublishing, setUnpublishing] = useState(false);
     const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
     for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
@@ -63,6 +64,7 @@ export default function EditMenuClient({
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
         if (isPublished) return;
 
+        setHasUnsavedChanges(true);
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -78,6 +80,7 @@ export default function EditMenuClient({
     const handleToggleHoliday = (day: Weekday) => {
         if (isPublished) return;
 
+        setHasUnsavedChanges(true);
         setMenuData((prev) => ({
             ...prev,
             [day]: {
@@ -92,6 +95,7 @@ export default function EditMenuClient({
         try {
             await updateMenu(week, menuData, status);
             toast.success(status === "published" ? "Menu published" : "Draft saved");
+            setHasUnsavedChanges(false);
         } catch (error: any) {
             toast.error(error.message || "Failed to save menu");
         } finally {
@@ -117,7 +121,7 @@ export default function EditMenuClient({
 
     return (
         <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-28">
-            <WeekHeader weekStartDate={week} status={currentStatus} showStatus />
+            <WeekHeader weekStartDate={week} hasUnsavedChanges={hasUnsavedChanges && !isPublished} showStatus />
 
             {isPublished && (
                 <div className="flex items-center rounded border border-amber-200 bg-amber-50 p-4">

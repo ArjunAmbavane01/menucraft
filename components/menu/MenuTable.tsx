@@ -8,6 +8,12 @@ import { cn } from "@/lib/utils";
 import { Weekday, weekdays, weekdayLabels, WeeklyMenu, MenuTemplate } from "@/types/menu";
 import { DishCategory, Dish } from "@/types/dishes";
 import { DishSelect } from "./DishSelect";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MenuTableProps {
     menu: WeeklyMenu;
@@ -98,7 +104,20 @@ export function MenuTable({
                                                 {isHoliday ? (
                                                     <span className="text-sm text-muted-foreground text">—</span>
                                                 ) : dish ? (
-                                                    <span className="text-sm">{dish.name}</span>
+                                                    <TooltipProvider delayDuration={300}>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-accent/50 transition-colors cursor-default">
+                                                                    <span className="text-sm font-medium">{dish.name}</span>
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            {lastUsedMap[dish.id] && (
+                                                                <TooltipContent side="top" className="text-xs opacity-85">
+                                                                    <p>Last used: {lastUsedMap[dish.id]}</p>
+                                                                </TooltipContent>
+                                                            )}
+                                                        </Tooltip>
+                                                    </TooltipProvider>
                                                 ) : (
                                                     <span className="text-sm text-muted-foreground">—</span>
                                                 )}
