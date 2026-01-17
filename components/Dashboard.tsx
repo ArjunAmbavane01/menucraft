@@ -171,14 +171,14 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
                 <Button onClick={handleCreateNextWeek} size="lg">
-                    <PlusCircle className="size-4 mr-2" />
+                    <PlusCircle />
                     Create Menu for Next Week
                 </Button>
 
                 <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                     <PopoverTrigger asChild>
                         <Button variant="outline" size="lg">
-                            <CalendarIcon className="size-4 mr-2" />
+                            <CalendarIcon />
                             Create Menu for Specific Week
                         </Button>
                     </PopoverTrigger>
@@ -218,12 +218,12 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                     ) : (
                         <div className="flex flex-col items-center justify-center py-5 text-center">
                             <Calendar className="size-8 stroke-1 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-semibold mb-1">No menu for this week</h3>
-                            <p className="text-muted-foreground mb-3">
+                            <h3 className="text-lg font-semibold">No menu for this week</h3>
+                            <p className="text-muted-foreground mb-5">
                                 Create a menu to get started
                             </p>
                             <Button onClick={handleCreateNextWeek} variant="default">
-                                <PlusCircle className="size-4 mr-2" />
+                                <PlusCircle />
                                 Create Menu
                             </Button>
                         </div>
@@ -248,7 +248,9 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {menusByPeriod.upcoming.map(renderMenuRow)}
+                                {[...menusByPeriod.upcoming]
+                                    .sort((a, b) => new Date(a.weekStartDate).getTime() - new Date(b.weekStartDate).getTime())
+                                    .map(renderMenuRow)}
                             </TableBody>
                         </Table>
                     ) : (
@@ -276,7 +278,10 @@ export default function DashboardPage({ menusByPeriod }: DashboardProps) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {menusByPeriod.past.slice(0, 10).map(renderMenuRow)}
+                                {[...menusByPeriod.past]
+                                    .sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime())
+                                    .slice(0, 10)
+                                    .map(renderMenuRow)}
                             </TableBody>
                         </Table>
                     ) : (

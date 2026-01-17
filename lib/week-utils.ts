@@ -1,4 +1,4 @@
-import { format, parse, startOfWeek, addDays, addWeeks, differenceInWeeks, isSameWeek, isPast, isFuture, isValid } from "date-fns";
+import { format, parse, startOfWeek, addDays, addWeeks, isSameWeek, isValid } from "date-fns";
 
 /**
  * Parse dd-mm-yyyy format to Date
@@ -56,7 +56,7 @@ export function getWeekStart(date: Date = new Date()): Date {
  */
 export function getWeekEnd(date: Date = new Date()): Date {
   const start = getWeekStart(date);
-  return addDays(start, 6);
+  return addDays(start, 4);
 }
 
 /**
