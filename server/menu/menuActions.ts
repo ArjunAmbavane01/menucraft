@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { extractDishIds } from "@/lib/extractDishIds";
+import { createMenuLimiter, updateMenuLimiter } from "@/lib/ratelimit";
 
 /**
  * Get all dishes grouped by category
@@ -66,6 +67,10 @@ export async function createMenu(
 
     if (!userSession) redirect("/signin");
 
+    // ratelimit user
+    const ratelimit = await createMenuLimiter.limit(userSession.user.id);
+    if (!ratelimit.success) throw new Error("Too many menu creations. Try again later.");
+
     const weekStartDate = weekToISODate(week);
 
     // Add status to data.meta
@@ -100,8 +105,8 @@ export async function createMenu(
         );
     }
 
-    revalidateTag('menus',{ expire: 0 });
-    revalidateTag('dish-usage',{ expire: 0 });
+    revalidateTag('menus', { expire: 0 });
+    revalidateTag('dish-usage', { expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);
@@ -124,6 +129,10 @@ export async function updateMenu(
     });
 
     if (!userSession) redirect("/signin");
+
+    // ratelimit user
+    const ratelimit = await updateMenuLimiter.limit(userSession.user.id);
+    if (!ratelimit.success) throw new Error("Too many menu updations. Try again later.");
 
     const weekStartDate = weekToISODate(week);
 
@@ -157,8 +166,8 @@ export async function updateMenu(
         );
     }
 
-    revalidateTag('menus',{ expire: 0 });
-    revalidateTag('dish-usage',{ expire: 0 });
+    revalidateTag('menus', { expire: 0 });
+    revalidateTag('dish-usage', { expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);

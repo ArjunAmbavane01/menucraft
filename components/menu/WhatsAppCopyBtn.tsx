@@ -55,17 +55,11 @@ export function WhatsAppCopyButton({
                     }`}
             />
             <div className="relative flex items-center gap-2">
-                {copied ? (
-                    <>
-                        <Check className="size-4 animate-in zoom-in duration-200" />
-                        <span>Copied!</span>
-                    </>
-                ) : (
-                    <>
-                        <MessageCircle className="size-4" />
-                        <span>Copy for WhatsApp</span>
-                    </>
-                )}
+                {copied
+                    ? <Check className="animate-in zoom-in duration-200" />
+                    : <MessageCircle />
+                }
+                <span>Copy for WhatsApp</span>
             </div>
         </Button>
     );
