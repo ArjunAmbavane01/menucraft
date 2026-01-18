@@ -34,7 +34,6 @@ interface DishSelectProps {
 }
 
 export function DishSelect({
-    category,
     value,
     onChange,
     dishes,

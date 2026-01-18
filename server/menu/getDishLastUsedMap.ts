@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { dishUsage } from "@/db/schema";
-import { differenceInWeeks, startOfWeek } from "date-fns";
+import { differenceInCalendarWeeks, startOfWeek } from "date-fns";
 import { max } from "drizzle-orm";
 import { unstable_cache } from 'next/cache';
 
@@ -28,7 +28,7 @@ export async function getDishLastUsedMap(weekStartDate: Date) {
 
       for (const row of rows) {
         const date = new Date(row.lastUsed!);
-        const weeksAgo = differenceInWeeks(thisWeekStart, date);
+        const weeksAgo = differenceInCalendarWeeks(thisWeekStart, date);
 
         if (weeksAgo === 0) result[row.dishId] = "this week";
         else if (weeksAgo > 0) result[row.dishId] = `${weeksAgo} week${weeksAgo > 1 ? "s" : ""} ago`;

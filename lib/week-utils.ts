@@ -80,7 +80,6 @@ export function isPastWeek(week: string): boolean {
  */
 export function isFutureWeek(week: string): boolean {
   const date = parseWeekDate(week);
-  const thisWeekStart = getWeekStart();
   const thisWeekEnd = getWeekEnd();
   return date > thisWeekEnd;
 }

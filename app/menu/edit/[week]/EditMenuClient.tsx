@@ -30,15 +30,13 @@ interface EditMenuClientProps {
     menu: WeeklyMenu;
     dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
     lastUsedMap: Record<number, string | null>;
-    user: any;
 }
 
 export default function EditMenuClient({
     week,
     menu: initialMenu,
-    dishesByCategory: rawDishesByCategory,
+    dishesByCategory,
     lastUsedMap,
-    user,
 }: EditMenuClientProps) {
     const router = useRouter();
     const weekStartDate = weekToISODate(week);
@@ -49,13 +47,7 @@ export default function EditMenuClient({
     const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
-    for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
-        dishesByCategory[category] = dishes;
-    }
-
-    const initialData = { ...initialMenu.data };
-    if (initialData.meta) delete (initialData as any).meta;
+    const { meta, ...initialData } = initialMenu.data;
 
     const [menuData, setMenuData] = useState<MenuData>(initialData as MenuData);
 
@@ -201,7 +193,7 @@ export default function EditMenuClient({
                             </AlertDialogTitle>
                         </div>
                         <AlertDialogDescription className="text-base">
-                            This will remove the menu from public view. Users won't be able to see this week's menu until you publish it again.
+                            This will remove the menu from public view. Users won&apos;t be able to see this week&apos;s menu until you publish it again.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-2 mt-3">

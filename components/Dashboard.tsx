@@ -6,7 +6,7 @@ import { useState } from "react";
 import { WeeklyMenu, MenuStatus } from "@/types/menu";
 import { formatWeekRange, formatWeekDate, getNextWeekStart } from "@/lib/week-utils";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -87,7 +87,7 @@ export default function DashboardPage({
             setTimeout(() => {
                 setCopiedId(null);
             }, 2000);
-        } catch (err) {
+        } catch (err: any) {
             toast.error("Failed to copy link");
         }
     };
@@ -208,7 +208,7 @@ export default function DashboardPage({
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-normal tracking-tight">This Week's Menu</h2>
+                            <h2 className="text-2xl font-normal tracking-tight">This Week&apos;s Menu</h2>
                             <p className="text-muted-foreground mt-1">
                                 {formatWeekRange(formatWeekDate(new Date(menusByPeriod.thisWeek.weekStartDate)))}
                             </p>

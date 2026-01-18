@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MenuTable } from "@/components/menu/MenuTable";
@@ -18,16 +17,13 @@ interface CreateMenuClientProps {
     week: string;
     dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
     lastUsedMap: Record<number, string | null>;
-    user: any;
 }
 
 export default function CreateMenuClient({
     week,
-    dishesByCategory: rawDishesByCategory,
+    dishesByCategory,
     lastUsedMap,
-    user,
 }: CreateMenuClientProps) {
-    const router = useRouter();
     const weekStartDate = weekToISODate(week);
 
     const [savingDraft, setSavingDraft] = useState(false);
@@ -35,11 +31,6 @@ export default function CreateMenuClient({
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [currentStatus, setCurrentStatus] = useState<MenuStatus>("draft");
     const [hasEverSaved, setHasEverSaved] = useState(false);
-
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
-    for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
-        dishesByCategory[category] = dishes;
-    }
 
     const [menuData, setMenuData] = useState<MenuData>({
         monday: { isHoliday: false, dishes: {} },
@@ -95,9 +86,9 @@ export default function CreateMenuClient({
         <div className="flex flex-col gap-6 container mx-auto max-w-7xl px-6 py-28">
             <WeekHeader
                 weekStartDate={week}
-                showStatus
                 status={currentStatus}
                 hasUnsavedChanges={!hasEverSaved || hasUnsavedChanges}
+                showStatus={true}
             />
 
 

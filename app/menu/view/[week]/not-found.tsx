@@ -11,7 +11,7 @@ export default function NotFound() {
                     <FileQuestion className="size-12 stroke-1 text-muted-foreground mb-4" />
                     <h1 className="text-2xl font-normal mb-2">Menu Not Found</h1>
                     <p className="text-muted-foreground mb-6">
-                        The menu you're looking for doesn't exist or hasn't been published yet.
+                        The menu you&apos;re looking for doesn&apos;t exist or hasn&apos;t been published yet.
                     </p>
                     <Button asChild variant="outline">
                         <Link href="/dashboard">Go Home</Link>

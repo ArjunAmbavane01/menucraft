@@ -3,10 +3,7 @@
 import { MenuTable } from "@/components/menu/MenuTable";
 import { WeekHeader } from "@/components/menu/WeekHeader";
 import { WeeklyMenu, MenuData } from "@/types/menu";
-import { formatWeekDate, parseWeekDate } from "@/lib/week-utils";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { formatWeekDate } from "@/lib/week-utils";
 
 interface ViewMenuClientProps {
     menu: WeeklyMenu;
@@ -16,21 +13,11 @@ interface ViewMenuClientProps {
 
 export default function ViewMenuClient({
     menu,
-    dishesByCategory: rawDishesByCategory,
-    lastUsedMap,
+    dishesByCategory,
+    lastUsedMap
 }: ViewMenuClientProps) {
-
-    const router = useRouter();
-
     const weekStartDate = formatWeekDate(new Date(menu.weekStartDate));
-
-    const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {} as any;
-    for (const [category, dishes] of Object.entries(rawDishesByCategory)) {
-        dishesByCategory[category] = dishes;
-    }
-
-    const menuData = { ...menu.data };
-    if (menuData.meta) delete (menuData as any).meta;
+    const { meta, ...menuData } = menu.data;
 
     return (
         <div className="min-h-screen bg-background">
@@ -39,7 +26,7 @@ export default function ViewMenuClient({
 
                 <MenuTable
                     menu={{ id: menu.id, weekStartDate: menu.weekStartDate, data: menuData as MenuData, status: "published" }}
-                    dishesByCategory={dishesByCategory as any}
+                    dishesByCategory={dishesByCategory}
                     lastUsedMap={lastUsedMap}
                     onDishChange={() => { }}
                     onToggleHoliday={() => { }}

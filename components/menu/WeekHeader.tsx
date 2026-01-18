@@ -1,7 +1,6 @@
 "use client";
 
 import { formatWeekRange } from "@/lib/week-utils";
-import { Badge } from "@/components/ui/badge";
 import { MenuStatus } from "@/types/menu";
 
 interface WeekHeaderProps {
