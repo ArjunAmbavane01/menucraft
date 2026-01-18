@@ -70,6 +70,19 @@ export default function EditMenuClient({
         }));
     };
 
+    const handleSnacksChange = (day: Weekday, snackIds: number[]) => {
+        if (isPublished) return;
+
+        setHasUnsavedChanges(true);
+        setMenuData((prev) => ({
+            ...prev,
+            [day]: {
+                ...prev[day],
+                eveningSnacks: snackIds,
+            },
+        }));
+    };
+
     const handleToggleHoliday = (day: Weekday) => {
         if (isPublished) return;
 
@@ -147,6 +160,7 @@ export default function EditMenuClient({
                 lastUsedMap={lastUsedMap}
                 onDishChange={handleDishChange}
                 onToggleHoliday={handleToggleHoliday}
+                onSnacksChange={handleSnacksChange}
             />
 
             <div className="flex items-center justify-between gap-3">

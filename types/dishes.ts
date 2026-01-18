@@ -5,7 +5,8 @@ export type DishCategory =
   | "pulav"
   | "dal"
   | "chicken"
-  | "optional";
+  | "special"
+  | "snack";
 
 export interface Dish {
   id: number;

@@ -21,6 +21,7 @@ export const weekdayLabels: Record<Weekday, string> = {
 export type MenuDay = {
   isHoliday: boolean;
   dishes: Partial<Record<DishCategory, number>>;
+  eveningSnacks: number[];
 };
 
 export type MenuData = Record<Weekday, MenuDay> & {
@@ -39,9 +40,9 @@ export interface WeeklyMenu {
 }
 
 export const MenuTemplate: Record<Weekday, DishCategory[]> = {
-  monday: ["main", "side", "egg", "dal", "optional", "pulav"],
-  tuesday: ["main", "side", "egg", "dal", "optional", "pulav"],
-  wednesday: ["main", "side", "egg", "dal", "optional", "pulav", "chicken"],
-  thursday: ["main", "side", "egg", "dal", "optional", "pulav"],
-  friday: ["main", "side", "egg", "dal", "optional", "pulav", "chicken"],
+  monday: ["main", "side", "egg", "dal", "special", "pulav"],
+  tuesday: ["main", "side", "egg", "dal", "special", "pulav"],
+  wednesday: ["main", "side", "egg", "dal", "special", "pulav", "chicken"],
+  thursday: ["main", "side", "egg", "dal", "special", "pulav"],
+  friday: ["main", "side", "egg", "dal", "special", "pulav", "chicken"],
 };

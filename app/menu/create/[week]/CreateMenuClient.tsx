@@ -10,12 +10,12 @@ import { MenuData, Weekday, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
 import { Save, Globe } from "lucide-react";
-import { DishCategory } from "@/types/dishes";
+import { Dish, DishCategory } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 
 interface CreateMenuClientProps {
     week: string;
-    dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
+    dishesByCategory: Record<string, Dish[]>;
     lastUsedMap: Record<number, string | null>;
 }
 
@@ -33,11 +33,11 @@ export default function CreateMenuClient({
     const [hasEverSaved, setHasEverSaved] = useState(false);
 
     const [menuData, setMenuData] = useState<MenuData>({
-        monday: { isHoliday: false, dishes: {} },
-        tuesday: { isHoliday: false, dishes: {} },
-        wednesday: { isHoliday: false, dishes: {} },
-        thursday: { isHoliday: false, dishes: {} },
-        friday: { isHoliday: false, dishes: {} },
+        monday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
+        tuesday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
+        wednesday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
+        thursday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
+        friday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
     });
 
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
@@ -50,6 +50,17 @@ export default function CreateMenuClient({
                     ...prev[day].dishes,
                     [category]: dishId,
                 },
+            },
+        }));
+    };
+
+    const handleSnacksChange = (day: Weekday, snackIds: number[]) => {
+        setHasUnsavedChanges(true);
+        setMenuData((prev) => ({
+            ...prev,
+            [day]: {
+                ...prev[day],
+                eveningSnacks: snackIds,
             },
         }));
     };
@@ -98,6 +109,7 @@ export default function CreateMenuClient({
                 lastUsedMap={lastUsedMap}
                 onDishChange={handleDishChange}
                 onToggleHoliday={handleToggleHoliday}
+                onSnacksChange={handleSnacksChange}
             />
 
             <div className="flex items-center justify-end gap-3">
