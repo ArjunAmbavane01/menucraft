@@ -1,12 +1,11 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { getDishLastUsedMap } from '@/server/menu/getDishLastUsedMap';
+import { getAllDishesByCategory } from '@/server/menu/menuActions';
 import { getMenusByPeriod } from '@/server/menu/getMenusByPeriod';
 import { auth } from '@/lib/auth'
 import Navbar from '@/components/navbar/navbar';
 import Dashboard from '@/components/Dashboard';
-import { getAllDishesByCategory } from '@/server/menu/menuActions';
-import { getDishLastUsedMap } from '@/server/menu/getDishLastUsedMap';
-import { weekToISODate } from '@/lib/week-utils';
 
 export default async function page() {
     const userSession = await auth.api.getSession({
@@ -24,7 +23,7 @@ export default async function page() {
     if (thisWeekMenu) {
         // Fetch dishes and last used map
         dishesByCategory = await getAllDishesByCategory();
-        lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(thisWeekMenu.weekStartDate)));
+        lastUsedMap = await getDishLastUsedMap(thisWeekMenu.weekStartDate);
     }
 
     return (

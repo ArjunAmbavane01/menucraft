@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { WeeklyMenu, MenuStatus } from "@/types/menu";
-import { formatWeekRange, formatWeekDate, getNextWeekStart } from "@/lib/week-utils";
+import { WeeklyMenu } from "@/types/menu";
+import { formatWeekRange, formatWeekDate, getNextWeekStart, getWeekStart, parseISODate } from "@/lib/week-utils";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { MenuTable } from "@/components/menu/MenuTable";
 import { toast } from "sonner";
 import { Separator } from "./ui/separator";
+import { DishesByCategory, LastUsedMap } from "@/types/dishes";
 
 interface DashboardProps {
     menusByPeriod: {
@@ -29,8 +30,8 @@ interface DashboardProps {
         upcoming: WeeklyMenu[];
         past: WeeklyMenu[];
     };
-    dishesByCategory: Record<string, { id: number; name: string; category: string }[]> | null;
-    lastUsedMap: Record<number, string | null> | null;
+    dishesByCategory: DishesByCategory | null;
+    lastUsedMap: LastUsedMap | null;
 }
 
 export default function DashboardPage({
@@ -52,29 +53,14 @@ export default function DashboardPage({
 
     const handleDateSelect = (date: Date | undefined) => {
         if (!date) return;
-
-        // Find the Monday of the selected week
-        const dayOfWeek = date.getDay();
-        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        const mondayDate = new Date(date);
-        mondayDate.setDate(date.getDate() - daysToMonday);
-        mondayDate.setHours(0, 0, 0, 0);
-
+        const mondayDate = getWeekStart(date);
         const weekFormat = formatWeekDate(mondayDate);
         setDatePickerOpen(false);
         router.push(`/menu/create/${weekFormat}`);
     };
 
-    const getStatusBadge = (status: MenuStatus) => {
-        return (
-            <Badge variant={status === "published" ? "default" : "secondary"}>
-                {status === "published" ? "Published" : "Draft"}
-            </Badge>
-        );
-    };
-
     const handleCopyLink = async (menu: WeeklyMenu) => {
-        const weekFormat = formatWeekDate(new Date(menu.weekStartDate));
+        const weekFormat = formatWeekDate(parseISODate(menu.weekStartDate));
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL!;
         const url = `${baseUrl}/menu/view/${weekFormat}`;
 
@@ -93,7 +79,7 @@ export default function DashboardPage({
     };
 
     const renderMenuRow = (menu: WeeklyMenu) => {
-        const weekFormat = formatWeekDate(new Date(menu.weekStartDate));
+        const weekFormat = formatWeekDate(parseISODate(menu.weekStartDate));
         const menuExists = true; // Menu is passed in, so it exists
         const isPublished = menu.status === "published";
         const isCopied = copiedId === menu.id;
@@ -103,7 +89,11 @@ export default function DashboardPage({
                 <TableCell className="font-medium">
                     {formatWeekRange(weekFormat)}
                 </TableCell>
-                <TableCell>{getStatusBadge(menu.status)}</TableCell>
+                <TableCell>
+                    <Badge variant={menu.status === "published" ? "default" : "secondary"}>
+                        {menu.status === "published" ? "Published" : "Draft"}
+                    </Badge>
+                </TableCell>
                 <TableCell>
                     <div className="flex items-center gap-2">
                         <TooltipProvider>
@@ -210,7 +200,7 @@ export default function DashboardPage({
                         <div>
                             <h2 className="text-2xl font-normal tracking-tight">This Week&apos;s Menu</h2>
                             <p className="text-muted-foreground mt-1">
-                                {formatWeekRange(formatWeekDate(new Date(menusByPeriod.thisWeek.weekStartDate)))}
+                                {formatWeekRange(formatWeekDate(parseISODate(menusByPeriod.thisWeek.weekStartDate)))}
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -227,7 +217,7 @@ export default function DashboardPage({
                                 </span>
                             </div>
                             <Link
-                                href={`/menu/edit/${formatWeekDate(new Date(menusByPeriod.thisWeek.weekStartDate))}`}
+                                href={`/menu/edit/${formatWeekDate(parseISODate(menusByPeriod.thisWeek.weekStartDate))}`}
                                 className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                             >
                                 <Edit className="size-4 mr-1" />
@@ -268,6 +258,7 @@ export default function DashboardPage({
                         dishesByCategory={dishesByCategory!}
                         lastUsedMap={lastUsedMap!}
                         onDishChange={() => { }}
+                        onSnacksChange={() => { }}
                         onToggleHoliday={() => { }}
                         readOnly
                     />

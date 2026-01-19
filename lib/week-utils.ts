@@ -1,9 +1,8 @@
-import { format, parse, startOfWeek, addDays, addWeeks, isSameWeek, isValid } from "date-fns";
+import { format, parse, startOfWeek, addDays, addWeeks, isSameWeek, isValid, startOfDay } from "date-fns";
 
 /**
  * Parse dd-mm-yyyy format to Date
  * This is the single source of truth for parsing week date strings.
- * Never use new Date(string) for week strings - always use this function.
  */
 export function parseWeekDate(week: string): Date {
   const parsed = parse(week, "dd-MM-yyyy", new Date());
@@ -45,14 +44,22 @@ export function weekToISODate(week: string): string {
 }
 
 /**
- * Get the Monday of the week for a given date
+ * Parse ISO date string (YYYY-MM-DD) from database to Date
  */
-export function getWeekStart(date: Date = new Date()): Date {
-  return startOfWeek(date, { weekStartsOn: 1 }); // 1 = Monday
+export function parseISODate(isoDate: string): Date {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 /**
- * Get the Sunday of the week for a given date
+ * Get the Monday of the week for a given date
+ */
+export function getWeekStart(date: Date = new Date()): Date {
+  return startOfDay(startOfWeek(date, { weekStartsOn: 1 })); // 1 = Monday
+}
+
+/**
+ * Get the end of the work week (Friday) for a given date
  */
 export function getWeekEnd(date: Date = new Date()): Date {
   const start = getWeekStart(date);
