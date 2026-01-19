@@ -18,13 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Dish } from "@/types/dishes";
+import { Dish, LastUsedMap } from "@/types/dishes";
 
 interface SnackMultiSelectProps {
   value: number[];
   onChange: (ids: number[]) => void;
   dishes: Dish[];
-  lastUsedMap: Record<number, string | null>;
+  lastUsedMap: LastUsedMap;
 }
 
 export function SnackMultiSelect({

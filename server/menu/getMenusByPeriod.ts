@@ -6,6 +6,7 @@ import { WeeklyMenu } from "@/types/menu";
 import { desc } from "drizzle-orm";
 import { startOfWeek, endOfWeek, parseISO, startOfDay, addDays } from "date-fns";
 import { getWeekStart, parseISODate } from "@/lib/week-utils";
+import { unstable_cache } from "next/cache";
 
 export interface MenusByPeriod {
   thisWeek: WeeklyMenu | null;
@@ -16,7 +17,7 @@ export interface MenusByPeriod {
 /**
  * Get menus grouped by period: this week, upcoming, and past
  */
-export const getMenusByPeriod = async (): Promise<MenusByPeriod> => {
+export const getMenusByPeriod = unstable_cache(async (): Promise<MenusByPeriod> => {
   const thisWeekStart = getWeekStart();
   const thisWeekEnd = addDays(thisWeekStart, 6); // consider till sunday for current week menu
 
@@ -44,4 +45,7 @@ export const getMenusByPeriod = async (): Promise<MenusByPeriod> => {
   }
 
   return result;
-}
+},
+  ["menus-by-period"],
+  { revalidate: 60 }
+);

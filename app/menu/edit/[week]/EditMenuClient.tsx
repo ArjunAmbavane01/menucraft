@@ -167,7 +167,7 @@ export default function EditMenuClient({
                 onSnacksChange={handleSnacksChange}
             />
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between">
                 <WhatsAppCopyButton
                     menuData={menuData}
                     dishesByCategory={dishesByCategory}

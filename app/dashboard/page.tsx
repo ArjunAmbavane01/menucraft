@@ -22,9 +22,12 @@ export default async function page() {
 
     if (thisWeekMenu) {
         // Fetch dishes and last used map
-        dishesByCategory = await getAllDishesByCategory();
-        lastUsedMap = await getDishLastUsedMap(thisWeekMenu.weekStartDate);
+        [dishesByCategory, lastUsedMap] = await Promise.all([
+            getAllDishesByCategory(),
+            getDishLastUsedMap(thisWeekMenu.weekStartDate)
+        ]);
     }
+    console.log("heap MB", Math.round(process.memoryUsage().heapUsed / 1024 / 1024));
 
     return (
         <>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Weekday, weekdays, weekdayLabels, WeeklyMenu, MenuTemplate } from "@/types/menu";
-import { DishCategory, Dish } from "@/types/dishes";
+import { DishCategory, Dish, LastUsedMap, DishesByCategory } from "@/types/dishes";
 import { DishSelect } from "./DishSelect";
 import {
     Tooltip,
@@ -19,8 +19,8 @@ import { SnackMultiSelect } from "./SnackMultiSelect";
 
 interface MenuTableProps {
     menu: WeeklyMenu;
-    dishesByCategory: Record<string, Dish[]>;
-    lastUsedMap: Record<number, string | null>;
+    dishesByCategory: DishesByCategory;
+    lastUsedMap: LastUsedMap;
     onDishChange: (day: Weekday, category: DishCategory, dishId: number | null) => void;
     onToggleHoliday: (day: Weekday) => void;
     onSnacksChange: (day: Weekday, snackIds: number[]) => void;
@@ -44,7 +44,7 @@ export function MenuTable({
         new Set(Object.values(MenuTemplate).flat())
     ) as DishCategory[];
 
-    const snackDishes = dishesByCategory["main"] || [];
+    const snackDishes = dishesByCategory["snacks"] || [];
 
     return (
         <div className="rounded-md border overflow-hidden">

@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LastUsedMap } from "@/types/dishes";
 
 interface Dish {
     id: number;
@@ -29,7 +30,7 @@ interface DishSelectProps {
     value?: number | null;
     onChange: (id: number | null) => void;
     dishes: Dish[];
-    lastUsedMap: Record<number, string | null>;
+    lastUsedMap: LastUsedMap;
     placeholder?: string;
 }
 

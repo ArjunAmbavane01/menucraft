@@ -27,13 +27,11 @@ export default async function CreateMenuPage({ params }: PageProps) {
         redirect("/dashboard");
     }
 
-    // Check if menu already exists
-    const existingMenu = await getMenuByWeek(week);
-    if (existingMenu) redirect(`/menu/edit/${week}`);
-
     // Fetch dishes and last used map
-    const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap(weekToISODate(week));
+    const [dishesByCategory, lastUsedMap] = await Promise.all([
+        getAllDishesByCategory(),
+        getDishLastUsedMap(weekToISODate(week))
+    ]);
 
     return (
         <>

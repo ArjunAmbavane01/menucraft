@@ -6,6 +6,7 @@ import { getDishLastUsedMap } from "@/server/menu/getDishLastUsedMap";
 import { parseWeekDate, weekToISODate } from "@/lib/week-utils";
 import EditMenuClient from "./EditMenuClient";
 import Navbar from "@/components/navbar/navbar";
+import { toast } from "sonner";
 
 interface PageProps {
     params: Promise<{ week: string }>;
@@ -30,12 +31,15 @@ export default async function EditMenuPage({ params }: PageProps) {
     // Get existing menu
     const menu = await getMenuByWeek(week);
     if (!menu) {
-        redirect(`/menu/create/${week}`);
+        toast.error("The requested menu could not be found.");
+        redirect(`/dashboard`);
     }
 
     // Fetch dishes and last used map
-    const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap(weekToISODate(week));
+    const [dishesByCategory, lastUsedMap] = await Promise.all([
+        getAllDishesByCategory(),
+        getDishLastUsedMap(weekToISODate(week))
+    ]);
 
     return (
         <>

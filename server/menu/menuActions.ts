@@ -5,7 +5,7 @@ import { dishes, dishUsage, weeklyMenus } from "@/db/schema";
 import { MenuData, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { eq } from "drizzle-orm";
 import { weekToISODate } from "@/lib/week-utils";
-import { revalidatePath, } from "next/cache";
+import { revalidatePath, unstable_cache, } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -16,7 +16,7 @@ import { Dish, DishCategory } from "@/types/dishes";
 /**
  * Get all dishes grouped by category
  */
-export const getAllDishesByCategory = async () => {
+export const getAllDishesByCategory = unstable_cache(async () => {
     const allDishes = await db.select().from(dishes);
     const dishesByCategory: Record<string, Dish[]> = {};
 
@@ -29,7 +29,10 @@ export const getAllDishesByCategory = async () => {
         });
     }
     return dishesByCategory;
-}
+},
+    ["all-dishes"],
+    { revalidate: 3600 }
+);
 
 /**
  * Get menu by week (format: dd-mm-yyyy)
@@ -94,9 +97,8 @@ export async function createMenu(
     }
 
     revalidatePath("/dashboard");
-    revalidatePath(`/menu/create/${week}`);
-    revalidatePath(`/menu/edit/${week}`);
     revalidatePath(`/menu/view/${week}`);
+    redirect(`/menu/edit/${week}`);
 
     return createdMenu as WeeklyMenu;
 }
@@ -147,8 +149,6 @@ export async function updateMenu(
     }
 
     revalidatePath("/dashboard");
-    revalidatePath(`/menu/create/${week}`);
-    revalidatePath(`/menu/edit/${week}`);
     revalidatePath(`/menu/view/${week}`);
 
     return updatedMenu as WeeklyMenu;

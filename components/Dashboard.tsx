@@ -45,6 +45,12 @@ export default function DashboardPage({
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [copiedId, setCopiedId] = useState<number | null>(null);
 
+    const handleCreateThisWeek = () => {
+        const thisWeekStart = getWeekStart();
+        const weekFormat = formatWeekDate(thisWeekStart);
+        router.push(`/menu/create/${weekFormat}`);
+    };
+
     const handleCreateNextWeek = () => {
         const nextWeekStart = getNextWeekStart();
         const weekFormat = formatWeekDate(nextWeekStart);
@@ -272,7 +278,7 @@ export default function DashboardPage({
                             <p className="text-sm text-muted-foreground mb-6">
                                 Create a menu to get started
                             </p>
-                            <Button onClick={handleCreateNextWeek} size="lg">
+                            <Button onClick={handleCreateThisWeek} size="lg">
                                 <PlusCircle />
                                 Create Menu
                             </Button>

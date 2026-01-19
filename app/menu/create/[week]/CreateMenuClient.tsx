@@ -12,6 +12,7 @@ import { isMenuComplete } from "@/lib/menu-validation";
 import { Save, Globe } from "lucide-react";
 import { DishCategory, DishesByCategory, LastUsedMap } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
+import { WhatsAppCopyButton } from "@/components/menu/WhatsAppCopyBtn";
 
 interface CreateMenuClientProps {
     week: string;
@@ -41,7 +42,7 @@ export default function CreateMenuClient({
     });
 
     const isPublished = currentStatus === "published";
-    
+
     const handleDishChange = (day: Weekday, category: DishCategory, dishId: number | null) => {
         if (isPublished) return;
         setHasUnsavedChanges(true);
@@ -121,22 +122,28 @@ export default function CreateMenuClient({
                 onSnacksChange={handleSnacksChange}
             />
 
-            <div className="flex items-center justify-end gap-3">
-                <Button
-                    variant="outline"
-                    onClick={() => handleSave("draft")}
-                    disabled={savingDraft || publishing}
-                >
-                    {savingDraft ? <Spinner /> : <Save />}
-                    Save Draft
-                </Button>
-                <Button
-                    onClick={() => handleSave("published")}
-                    disabled={publishing || savingDraft || !canPublish}
-                >
-                    {publishing ? <Spinner /> : <Globe />}
-                    Publish
-                </Button>
+            <div className="flex items-center justify-between">
+                <WhatsAppCopyButton
+                    menuData={menuData}
+                    dishesByCategory={dishesByCategory}
+                />
+                <div className="flex items-center justify-end gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={() => handleSave("draft")}
+                        disabled={savingDraft || publishing}
+                    >
+                        {savingDraft ? <Spinner /> : <Save />}
+                        Save Draft
+                    </Button>
+                    <Button
+                        onClick={() => handleSave("published")}
+                        disabled={publishing || savingDraft || !canPublish}
+                    >
+                        {publishing ? <Spinner /> : <Globe />}
+                        Publish
+                    </Button>
+                </div>
             </div>
         </div>
     );

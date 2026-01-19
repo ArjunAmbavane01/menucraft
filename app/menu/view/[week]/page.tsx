@@ -26,8 +26,10 @@ export default async function ViewMenuPage({ params }: PageProps) {
     if (status !== "published") notFound();
 
     // Fetch dishes and last used map
-    const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap(weekToISODate(week));
+    const [dishesByCategory, lastUsedMap] = await Promise.all([
+        getAllDishesByCategory(),
+        getDishLastUsedMap(weekToISODate(week))
+    ]);
 
     return (
         <ViewMenuClient

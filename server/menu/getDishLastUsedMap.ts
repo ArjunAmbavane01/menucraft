@@ -5,6 +5,7 @@ import { dishUsage } from "@/db/schema";
 import { parseISODate } from "@/lib/week-utils";
 import { differenceInCalendarWeeks, startOfWeek } from "date-fns";
 import { max } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 
 /**
  * Computes when each dish was last used in any previous menu.
@@ -14,7 +15,7 @@ import { max } from "drizzle-orm";
  *
  * @param weekStartDate - ISO date string (YYYY-MM-DD) from database
  */
-export const getDishLastUsedMap = async (weekStartDate: string) => {
+export const getDishLastUsedMap = unstable_cache(async (weekStartDate: string) => {
   const rows = await db
     .select({
       dishId: dishUsage.dishId,
@@ -41,4 +42,7 @@ export const getDishLastUsedMap = async (weekStartDate: string) => {
   }
 
   return result;
-}
+},
+  ["dish-last-used"],
+  { revalidate: 300 }
+);
