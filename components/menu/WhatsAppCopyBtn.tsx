@@ -6,14 +6,11 @@ import { toast } from "sonner";
 import { MessageCircle, Check } from "lucide-react";
 import { MenuData } from "@/types/menu";
 import { copyMenuToClipboard } from "@/lib/menu-copy";
+import { DishesByCategory } from "@/types/dishes";
 
 interface WhatsAppCopyButtonProps {
     menuData: MenuData;
-    dishesByCategory: Record<string, {
-        id: number;
-        name: string;
-        category: string;
-    }[]>;
+    dishesByCategory: DishesByCategory;
     disabled?: boolean;
 }
 

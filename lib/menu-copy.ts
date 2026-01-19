@@ -1,8 +1,9 @@
+import { DishesByCategory } from "@/types/dishes";
 import { MenuData, weekdays, weekdayLabels } from "@/types/menu";
 
 export function formatMenuForWhatsApp(
     menuData: MenuData,
-    dishesByCategory: Record<string, { id: number; name: string; category: string }[]>
+    dishesByCategory: DishesByCategory
 ): string {
 
     const lines: string[] = [];
@@ -32,6 +33,19 @@ export function formatMenuForWhatsApp(
             });
         }
 
+        // Evening snacks
+        if (dayData.eveningSnacks?.length) {
+            const snackNames = dayData.eveningSnacks
+                .map((id) =>
+                    (dishesByCategory["snacks"] || []).find((d) => d.id === id)?.name
+                )
+                .filter(Boolean);
+
+            if (snackNames.length) {
+                lines.push(`Eve snacks - ${snackNames.join(", ")}`);
+            }
+        }
+
         lines.push("");
     });
 
@@ -42,11 +56,7 @@ export function formatMenuForWhatsApp(
 
 export async function copyMenuToClipboard(
     menuData: MenuData,
-    dishesByCategory: Record<string, {
-        id: number;
-        name: string;
-        category: string;
-    }[]>
+    dishesByCategory: DishesByCategory
 ): Promise<void> {
     const text = formatMenuForWhatsApp(menuData, dishesByCategory);
     await navigator.clipboard.writeText(text);

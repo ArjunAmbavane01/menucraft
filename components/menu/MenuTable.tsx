@@ -44,7 +44,7 @@ export function MenuTable({
         new Set(Object.values(MenuTemplate).flat())
     ) as DishCategory[];
 
-    const snackDishes = dishesByCategory["snacks"] || [];
+    const snackDishes = dishesByCategory["main"] || [];
 
     return (
         <div className="rounded-md border overflow-hidden">
@@ -75,9 +75,12 @@ export function MenuTable({
 
                         return (
                             <Fragment key={day}>
-                                <TableRow>
+                                <TableRow className={cn(isHoliday && "bg-amber-50/50")}>
                                     <TableCell className="font-medium">
-                                        <div className="flex items-center gap-2">
+                                        <div className={cn(
+                                            "flex items-center gap-2",
+                                            readOnly && "pl-1"
+                                        )}>
                                             {!readOnly && (
                                                 <Button
                                                     variant="ghost"
@@ -88,7 +91,7 @@ export function MenuTable({
                                                     <Calendar className={cn("size-4", isHoliday && "text-amber-700")} />
                                                 </Button>
                                             )}
-                                            <span className={cn(isHoliday && "text-muted-foreground")}>
+                                            <span className={cn(isHoliday && "font-medium text-amber-900")}>
                                                 {weekdayLabels[day]}
                                             </span>
                                             {isToday && !isHoliday && (
@@ -96,62 +99,75 @@ export function MenuTable({
                                                     Today
                                                 </Badge>
                                             )}
+                                            {isHoliday && (
+                                                <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100 mt-0.5">
+                                                    Holiday
+                                                </Badge>
+                                            )}
                                         </div>
                                     </TableCell>
-                                    {allCategories.map((category) => {
-                                        const dishId = dayData?.dishes?.[category];
-                                        const dishes = dishesByCategory[category] || [];
+                                    {isHoliday ? (
+                                        <TableCell colSpan={allCategories.filter(c => c !== "snacks" && categoriesForDay.includes(c)).length}>
+                                            <div className="flex items-center justify-center gap-2 py-2">
+                                                <Calendar className="size-4 text-amber-600" />
+                                                <span className="text-sm font-medium text-amber-700">No menu scheduled</span>
+                                            </div>
+                                        </TableCell>
+                                    ) : (
+                                        allCategories.map((category) => {
+                                            const dishId = dayData?.dishes?.[category];
+                                            const dishes = dishesByCategory[category] || [];
 
-                                        if (category === "snacks") return null;
+                                            if (category === "snacks") return null;
 
-                                        // Hide category if not in template for this day
-                                        if (!categoriesForDay.includes(category)) return null;
+                                            // Hide category if not in template for this day
+                                            if (!categoriesForDay.includes(category)) return null;
 
-                                        if (readOnly) {
-                                            const dish = dishes.find((d) => d.id === dishId);
+                                            if (readOnly) {
+                                                const dish = dishes.find((d) => d.id === dishId);
+                                                return (
+                                                    <TableCell key={category} className="text-center">
+                                                        {isHoliday ? (
+                                                            <span className="text-sm text-muted-foreground text">—</span>
+                                                        ) : dish ? (
+                                                            <TooltipProvider delayDuration={300}>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="inline-flex text-sm font-medium truncate max-w-48">
+                                                                            {dish.name}
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                    {lastUsedMap[dish.id] && (
+                                                                        <TooltipContent side="top" className="text-xs opacity-85">
+                                                                            <p>Last used: {lastUsedMap[dish.id]}</p>
+                                                                        </TooltipContent>
+                                                                    )}
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        ) : (
+                                                            <span className="text-sm text-muted-foreground">—</span>
+                                                        )}
+                                                    </TableCell>
+                                                );
+                                            }
+
                                             return (
                                                 <TableCell key={category} className="text-center">
                                                     {isHoliday ? (
                                                         <span className="text-sm text-muted-foreground text">—</span>
-                                                    ) : dish ? (
-                                                        <TooltipProvider delayDuration={300}>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-accent/50 transition-colors cursor-default">
-                                                                        <span className="text-sm font-medium">{dish.name}</span>
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                {lastUsedMap[dish.id] && (
-                                                                    <TooltipContent side="top" className="text-xs opacity-85">
-                                                                        <p>Last used: {lastUsedMap[dish.id]}</p>
-                                                                    </TooltipContent>
-                                                                )}
-                                                            </Tooltip>
-                                                        </TooltipProvider>
                                                     ) : (
-                                                        <span className="text-sm text-muted-foreground">—</span>
+                                                        <DishSelect
+                                                            category={category}
+                                                            value={dishId}
+                                                            onChange={(id) => onDishChange(day, category, id)}
+                                                            dishes={dishes}
+                                                            lastUsedMap={lastUsedMap}
+                                                            placeholder={`Select ${category}`}
+                                                        />
                                                     )}
                                                 </TableCell>
                                             );
-                                        }
-
-                                        return (
-                                            <TableCell key={category} className="text-center">
-                                                {isHoliday ? (
-                                                    <span className="text-sm text-muted-foreground text">—</span>
-                                                ) : (
-                                                    <DishSelect
-                                                        category={category}
-                                                        value={dishId}
-                                                        onChange={(id) => onDishChange(day, category, id)}
-                                                        dishes={dishes}
-                                                        lastUsedMap={lastUsedMap}
-                                                        placeholder={`Select ${category}`}
-                                                    />
-                                                )}
-                                            </TableCell>
-                                        );
-                                    })}
+                                        }))}
                                 </TableRow>
 
                                 {/* Evening Snacks Row */}
@@ -172,14 +188,28 @@ export function MenuTable({
                                                         {eveningSnacks.map((snackId) => {
                                                             const snack = snackDishes.find((d) => d.id === snackId);
                                                             return snack ? (
-                                                                <Badge key={snackId} variant="secondary" className="text-sm font-normal">
-                                                                    {snack.name}
-                                                                </Badge>
+                                                                <TooltipProvider key={snackId} delayDuration={300}>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="text-sm font-normal shadow-xs rounded-sm truncate max-w-48"
+                                                                            >
+                                                                                {snack.name}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                        {lastUsedMap[snack.id] && (
+                                                                            <TooltipContent side="top" className="text-xs opacity-85">
+                                                                                <p>Last used: {lastUsedMap[snack.id]}</p>
+                                                                            </TooltipContent>
+                                                                        )}
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
                                                             ) : null;
                                                         })}
                                                     </div>
                                                 ) : (
-                                                    <span className="text-sm text-muted-foreground">—</span>
+                                                    <span className="text-sm text-muted-foreground pl-8">—</span>
                                                 )
                                             ) : (
                                                 <SnackMultiSelect
