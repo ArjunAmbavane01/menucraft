@@ -13,6 +13,7 @@ import { Save, Globe } from "lucide-react";
 import { DishCategory, DishesByCategory, LastUsedMap } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 import { WhatsAppCopyButton } from "@/components/menu/WhatsAppCopyBtn";
+import { useRouter } from "next/navigation";
 
 interface CreateMenuClientProps {
     week: string;
@@ -26,6 +27,7 @@ export default function CreateMenuClient({
     lastUsedMap,
 }: CreateMenuClientProps) {
     const weekStartDate = weekToISODate(week);
+    const router = useRouter();
 
     const [savingDraft, setSavingDraft] = useState(false);
     const [publishing, setPublishing] = useState(false);
@@ -95,6 +97,7 @@ export default function CreateMenuClient({
             setHasUnsavedChanges(false);
             setCurrentStatus(status);
             setHasEverSaved(true);
+            router.push(`/menu/edit/${week}`);
         } catch (error: any) {
             toast.error(error.message || "Failed to save menu");
         } finally {

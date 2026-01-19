@@ -2,12 +2,12 @@ export type DishCategory =
   | "main"
   | "side"
   | "egg"
-  | "pulav"
+  | "rice"
   | "dal"
   | "chicken"
   | "special"
-  | "dalkhichdi"
-  | "snacks";
+  | "dal khichdi"
+  | "snack";
 
 export interface Dish {
   id: number;

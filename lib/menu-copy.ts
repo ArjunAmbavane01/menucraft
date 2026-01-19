@@ -37,7 +37,7 @@ export function formatMenuForWhatsApp(
         if (dayData.eveningSnacks?.length) {
             const snackNames = dayData.eveningSnacks
                 .map((id) =>
-                    (dishesByCategory["snacks"] || []).find((d) => d.id === id)?.name
+                    (dishesByCategory["snack"] || []).find((d) => d.id === id)?.name
                 )
                 .filter(Boolean);
 

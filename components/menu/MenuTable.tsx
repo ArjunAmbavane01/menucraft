@@ -44,7 +44,7 @@ export function MenuTable({
         new Set(Object.values(MenuTemplate).flat())
     ) as DishCategory[];
 
-    const snackDishes = dishesByCategory["main"] || [];
+    const snackDishes = dishesByCategory["snack"] || [];
 
     return (
         <div className="rounded-md border overflow-hidden">
@@ -53,7 +53,7 @@ export function MenuTable({
                     <TableRow className="bg-muted/50">
                         <TableHead className="font-medium pl-3 min-w-44">Day</TableHead>
                         {allCategories.map((category) => {
-                            if (category === "snacks") return null;
+                            if (category === "snack") return null;
                             return (
                                 <TableHead
                                     key={category}
@@ -107,7 +107,7 @@ export function MenuTable({
                                         </div>
                                     </TableCell>
                                     {isHoliday ? (
-                                        <TableCell colSpan={allCategories.filter(c => c !== "snacks" && categoriesForDay.includes(c)).length}>
+                                        <TableCell colSpan={allCategories.filter(c => c !== "snack" && categoriesForDay.includes(c)).length}>
                                             <div className="flex items-center justify-center gap-2 py-2">
                                                 <Calendar className="size-4 text-amber-600" />
                                                 <span className="text-sm font-medium text-amber-700">No menu scheduled</span>
@@ -118,7 +118,7 @@ export function MenuTable({
                                             const dishId = dayData?.dishes?.[category];
                                             const dishes = dishesByCategory[category] || [];
 
-                                            if (category === "snacks") return null;
+                                            if (category === "snack") return null;
 
                                             // Hide category if not in template for this day
                                             if (!categoriesForDay.includes(category)) return null;
