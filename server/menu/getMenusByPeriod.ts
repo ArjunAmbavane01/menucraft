@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { weeklyMenus } from "@/db/schema";
 import { WeeklyMenu } from "@/types/menu";
 import { desc } from "drizzle-orm";
-import { startOfWeek, endOfWeek, parseISO, startOfDay, addDays } from "date-fns";
+import { addDays } from "date-fns";
 import { getWeekStart, parseISODate } from "@/lib/week-utils";
 
 export interface MenusByPeriod {

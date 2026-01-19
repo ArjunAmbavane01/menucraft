@@ -33,7 +33,7 @@ export function WhatsAppCopyButton({
             setTimeout(() => {
                 setCopied(false);
             }, 2000);
-        } catch (error: any) {
+        } catch {
             toast.error("Failed to copy menu", {
                 description: "Please try again",
             });

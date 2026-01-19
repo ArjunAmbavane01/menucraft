@@ -27,7 +27,6 @@ export default async function page() {
             getDishLastUsedMap(thisWeekMenu.weekStartDate)
         ]);
     }
-    console.log("heap MB", Math.round(process.memoryUsage().heapUsed / 1024 / 1024));
 
     return (
         <>

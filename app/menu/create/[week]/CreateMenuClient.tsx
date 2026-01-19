@@ -98,8 +98,10 @@ export default function CreateMenuClient({
             setCurrentStatus(status);
             setHasEverSaved(true);
             router.push(`/menu/edit/${week}`);
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save menu");
+        } catch (error: unknown) {
+            const message =
+                error instanceof Error ? error.message : "Failed to save menu";
+            toast.error(message);
         } finally {
             status === "draft" ? setSavingDraft(false) : setPublishing(false);
         }

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Weekday, weekdays, weekdayLabels, WeeklyMenu, MenuTemplate } from "@/types/menu";
-import { DishCategory, Dish, LastUsedMap, DishesByCategory } from "@/types/dishes";
+import { DishCategory, LastUsedMap, DishesByCategory, ALL_CATEGORIES } from "@/types/dishes";
 import { DishSelect } from "./DishSelect";
 import {
     Tooltip,
@@ -40,9 +40,7 @@ export function MenuTable({
     const todayWeekday = today.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase() as Weekday;
 
     // Get all unique categories from MenuTemplate
-    const allCategories = Array.from(
-        new Set(Object.values(MenuTemplate).flat())
-    ) as DishCategory[];
+    const allCategories = ALL_CATEGORIES
 
     const snackDishes = dishesByCategory["snack"] || [];
 

@@ -79,7 +79,7 @@ export default function DashboardPage({
             setTimeout(() => {
                 setCopiedId(null);
             }, 2000);
-        } catch (err: any) {
+        } catch {
             toast.error("Failed to copy link");
         }
     };

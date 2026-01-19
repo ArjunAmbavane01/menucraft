@@ -106,8 +106,10 @@ export default function EditMenuClient({
             await updateMenu(week, menuData, status);
             toast.success(status === "published" ? "Menu published" : "Draft saved");
             setHasUnsavedChanges(false);
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save menu");
+        } catch (error: unknown) {
+            const message =
+                error instanceof Error ? error.message : "Failed to save menu";
+            toast.error(message);
         } finally {
             status === "draft" ? setSavingDraft(false) : setPublishing(false);
         }
@@ -119,8 +121,10 @@ export default function EditMenuClient({
             await updateMenu(week, menuData, "draft");
             toast.success("Menu unpublished");
             router.refresh();
-        } catch (error: any) {
-            toast.error(error.message || "Failed to unpublish menu");
+        } catch (error: unknown) {
+            const message =
+                error instanceof Error ? error.message : "Failed to save menu";
+            toast.error(message);
         } finally {
             setUnpublishing(false);
             setShowUnpublishDialog(false);

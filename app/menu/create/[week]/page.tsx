@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getMenuByWeek, getAllDishesByCategory } from "@/server/menu/menuActions";
+import { getAllDishesByCategory } from "@/server/menu/menuActions";
 import { getDishLastUsedMap } from "@/server/menu/getDishLastUsedMap";
 import { parseWeekDate, weekToISODate } from "@/lib/week-utils";
 import CreateMenuClient from "./CreateMenuClient";
