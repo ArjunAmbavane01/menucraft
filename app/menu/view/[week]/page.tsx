@@ -22,12 +22,12 @@ export default async function ViewMenuPage({ params }: PageProps) {
     if (!menu) notFound();
 
     // Only show published menus in public view
-    const status = menu.data.meta?.status || menu.status;
+    const status = menu.status;
     if (status !== "published") notFound();
 
     // Fetch dishes and last used map
     const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(week)));
+    const lastUsedMap = await getDishLastUsedMap(weekToISODate(week));
 
     return (
         <ViewMenuClient

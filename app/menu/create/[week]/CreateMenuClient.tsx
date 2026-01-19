@@ -10,13 +10,13 @@ import { MenuData, Weekday, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
 import { Save, Globe } from "lucide-react";
-import { Dish, DishCategory } from "@/types/dishes";
+import { DishCategory, DishesByCategory, LastUsedMap } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 
 interface CreateMenuClientProps {
     week: string;
-    dishesByCategory: Record<string, Dish[]>;
-    lastUsedMap: Record<number, string | null>;
+    dishesByCategory: DishesByCategory;
+    lastUsedMap: LastUsedMap;
 }
 
 export default function CreateMenuClient({
@@ -40,18 +40,28 @@ export default function CreateMenuClient({
         friday: { isHoliday: false, dishes: {}, eveningSnacks: [] },
     });
 
-    const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
+    const isPublished = currentStatus === "published";
+    
+    const handleDishChange = (day: Weekday, category: DishCategory, dishId: number | null) => {
+        if (isPublished) return;
         setHasUnsavedChanges(true);
-        setMenuData((prev) => ({
-            ...prev,
-            [day]: {
-                ...prev[day],
-                dishes: {
-                    ...prev[day].dishes,
-                    [category]: dishId,
+        setMenuData((prev) => {
+            const newDishes = { ...prev[day].dishes };
+
+            if (dishId === null) {
+                newDishes[category] = undefined;
+            } else {
+                newDishes[category] = dishId;
+            }
+
+            return {
+                ...prev,
+                [day]: {
+                    ...prev[day],
+                    dishes: newDishes,
                 },
-            },
-        }));
+            };
+        });
     };
 
     const handleSnacksChange = (day: Weekday, snackIds: number[]) => {
@@ -102,7 +112,6 @@ export default function CreateMenuClient({
                 showStatus={true}
             />
 
-
             <MenuTable
                 menu={{ id: 0, weekStartDate, data: menuData, status: "draft" }}
                 dishesByCategory={dishesByCategory}
@@ -129,12 +138,6 @@ export default function CreateMenuClient({
                     Publish
                 </Button>
             </div>
-
-            {!canPublish && (
-                <p className="text-sm text-muted-foreground text-right">
-                    Complete all required slots to publish
-                </p>
-            )}
         </div>
     );
 }

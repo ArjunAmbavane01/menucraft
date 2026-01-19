@@ -5,37 +5,31 @@ import { dishes, dishUsage, weeklyMenus } from "@/db/schema";
 import { MenuData, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { eq } from "drizzle-orm";
 import { weekToISODate } from "@/lib/week-utils";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { extractDishIds } from "@/lib/extractDishIds";
 import { createMenuLimiter, updateMenuLimiter } from "@/lib/ratelimit";
+import { Dish, DishCategory } from "@/types/dishes";
 
 /**
  * Get all dishes grouped by category
  */
-export const getAllDishesByCategory = unstable_cache(
-    async () => {
-        const allDishes = await db.select().from(dishes);
-        const dishesByCategory: Record<string, { id: number; name: string; category: string }[]> = {};
+export const getAllDishesByCategory = async () => {
+    const allDishes = await db.select().from(dishes);
+    const dishesByCategory: Record<string, Dish[]> = {};
 
-        for (const dish of allDishes) {
-            if (!dishesByCategory[dish.category]) dishesByCategory[dish.category] = [];
-            dishesByCategory[dish.category].push({
-                id: dish.id,
-                name: dish.name,
-                category: dish.category,
-            });
-        }
-        return dishesByCategory;
-    },
-    ['dishes-by-category'],
-    {
-        revalidate: 86400 * 7, // 7 days
-        tags: ['dishes']
+    for (const dish of allDishes) {
+        if (!dishesByCategory[dish.category]) dishesByCategory[dish.category] = [];
+        dishesByCategory[dish.category].push({
+            id: dish.id,
+            name: dish.name,
+            category: dish.category as DishCategory,
+        });
     }
-);
+    return dishesByCategory;
+}
 
 /**
  * Get menu by week (format: dd-mm-yyyy)
@@ -73,12 +67,6 @@ export async function createMenu(
 
     const weekStartDate = weekToISODate(week);
 
-    // Add status to data.meta
-    const menuDataWithMeta: MenuData = {
-        ...data,
-        meta: { status },
-    };
-
     // Check if menu already exists
     const existing = await getMenuByWeek(week);
     if (existing) {
@@ -89,12 +77,12 @@ export async function createMenu(
         .insert(weeklyMenus)
         .values({
             weekStartDate,
-            data: menuDataWithMeta,
-            status, // Also store in column for easier queries
+            data,
+            status,
         })
         .returning();
 
-    const dishIds = extractDishIds(menuDataWithMeta);
+    const dishIds = extractDishIds(data);
 
     if (dishIds.length > 0) {
         await db.insert(dishUsage).values(
@@ -105,8 +93,6 @@ export async function createMenu(
         );
     }
 
-    revalidateTag('menus', { expire: 0 });
-    revalidateTag('dish-usage', { expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);
@@ -136,16 +122,10 @@ export async function updateMenu(
 
     const weekStartDate = weekToISODate(week);
 
-    // Add status to data.meta
-    const menuDataWithMeta: MenuData = {
-        ...data,
-        meta: { status },
-    };
-
     const [updatedMenu] = await db
         .update(weeklyMenus)
         .set({
-            data: menuDataWithMeta,
+            data,
             status, // Also update column
         })
         .where(eq(weeklyMenus.weekStartDate, weekStartDate))
@@ -155,7 +135,7 @@ export async function updateMenu(
 
     await db.delete(dishUsage).where(eq(dishUsage.weekStartDate, weekStartDate));
 
-    const dishIds = extractDishIds(menuDataWithMeta);
+    const dishIds = extractDishIds(data);
 
     if (dishIds.length > 0) {
         await db.insert(dishUsage).values(
@@ -166,8 +146,6 @@ export async function updateMenu(
         );
     }
 
-    revalidateTag('menus', { expire: 0 });
-    revalidateTag('dish-usage', { expire: 0 });
     revalidatePath("/dashboard");
     revalidatePath(`/menu/create/${week}`);
     revalidatePath(`/menu/edit/${week}`);

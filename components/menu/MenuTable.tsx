@@ -21,7 +21,7 @@ interface MenuTableProps {
     menu: WeeklyMenu;
     dishesByCategory: Record<string, Dish[]>;
     lastUsedMap: Record<number, string | null>;
-    onDishChange: (day: Weekday, category: DishCategory, dishId: number) => void;
+    onDishChange: (day: Weekday, category: DishCategory, dishId: number | null) => void;
     onToggleHoliday: (day: Weekday) => void;
     onSnacksChange: (day: Weekday, snackIds: number[]) => void;
     readOnly?: boolean;
@@ -44,14 +44,14 @@ export function MenuTable({
         new Set(Object.values(MenuTemplate).flat())
     ) as DishCategory[];
 
-    const snackDishes = dishesByCategory["egg"] || [];
+    const snackDishes = dishesByCategory["snacks"] || [];
 
     return (
         <div className="rounded-md border overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted/50">
-                        <TableHead className="w-48 font-semibold pl-3">Day</TableHead>
+                        <TableHead className="font-medium pl-3">Day</TableHead>
                         {allCategories.map((category) => (
                             <TableHead
                                 key={category}
@@ -144,7 +144,7 @@ export function MenuTable({
                                                         onChange={(id) => onDishChange(day, category, id)}
                                                         dishes={dishes}
                                                         lastUsedMap={lastUsedMap}
-                                                        placeholder={`Select ${category}...`}
+                                                        placeholder={`Select ${category}`}
                                                     />
                                                 )}
                                             </TableCell>
@@ -156,7 +156,7 @@ export function MenuTable({
                                     <TableRow>
                                         <TableCell colSpan={allCategories.length + 1} className="bg-muted/20 py-3">
                                             <div className="flex items-start gap-3 pl-2">
-                                                <span className="text-sm font-medium text-muted-foreground min-w-[120px] pt-1">
+                                                <span className="text-sm font-medium text-muted-foreground min-w-30 pt-1">
                                                     Evening Snacks:
                                                 </span>
                                                 {readOnly ? (

@@ -35,7 +35,7 @@ export default async function EditMenuPage({ params }: PageProps) {
 
     // Fetch dishes and last used map
     const dishesByCategory = await getAllDishesByCategory();
-    const lastUsedMap = await getDishLastUsedMap(new Date(weekToISODate(week)));
+    const lastUsedMap = await getDishLastUsedMap(weekToISODate(week));
 
     return (
         <>
@@ -45,7 +45,6 @@ export default async function EditMenuPage({ params }: PageProps) {
                 menu={menu}
                 dishesByCategory={dishesByCategory}
                 lastUsedMap={lastUsedMap}
-                user={userSession.user}
             />
         </>
     );

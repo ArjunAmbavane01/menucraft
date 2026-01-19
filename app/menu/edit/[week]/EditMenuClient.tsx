@@ -11,7 +11,7 @@ import { MenuData, Weekday, WeeklyMenu, MenuStatus } from "@/types/menu";
 import { weekToISODate } from "@/lib/week-utils";
 import { isMenuComplete } from "@/lib/menu-validation";
 import { Save, Globe, Lock, AlertTriangle } from "lucide-react";
-import { DishCategory } from "@/types/dishes";
+import { DishCategory, DishesByCategory, LastUsedMap } from "@/types/dishes";
 import { Spinner } from "@/components/ui/spinner";
 import {
     AlertDialog,
@@ -28,8 +28,8 @@ import { WhatsAppCopyButton } from "@/components/menu/WhatsAppCopyBtn";
 interface EditMenuClientProps {
     week: string;
     menu: WeeklyMenu;
-    dishesByCategory: Record<string, { id: number; name: string; category: string }[]>;
-    lastUsedMap: Record<number, string | null>;
+    dishesByCategory: DishesByCategory;
+    lastUsedMap: LastUsedMap;
 }
 
 export default function EditMenuClient({
@@ -47,27 +47,31 @@ export default function EditMenuClient({
     const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-    const { meta, ...initialData } = initialMenu.data;
+    const [menuData, setMenuData] = useState<MenuData>(initialMenu.data);
 
-    const [menuData, setMenuData] = useState<MenuData>(initialData as MenuData);
-
-    const currentStatus = initialMenu.data.meta?.status || initialMenu.status;
+    const currentStatus = initialMenu.status;
     const isPublished = currentStatus === "published";
 
-    const handleDishChange = (day: Weekday, category: DishCategory, dishId: number) => {
+    const handleDishChange = (day: Weekday, category: DishCategory, dishId: number | null) => {
         if (isPublished) return;
-
         setHasUnsavedChanges(true);
-        setMenuData((prev) => ({
-            ...prev,
-            [day]: {
-                ...prev[day],
-                dishes: {
-                    ...prev[day].dishes,
-                    [category]: dishId,
+        setMenuData((prev) => {
+            const newDishes = { ...prev[day].dishes };
+
+            if (dishId === null) {
+                newDishes[category] = undefined;
+            } else {
+                newDishes[category] = dishId;
+            }
+
+            return {
+                ...prev,
+                [day]: {
+                    ...prev[day],
+                    dishes: newDishes,
                 },
-            },
-        }));
+            };
+        });
     };
 
     const handleSnacksChange = (day: Weekday, snackIds: number[]) => {
@@ -187,10 +191,6 @@ export default function EditMenuClient({
                                 Publish
                             </Button>
                         </div>
-
-                        <p className="text-sm text-muted-foreground text-right">
-                            Complete all required slots to publish
-                        </p>
                     </>
                 )}
             </div>
@@ -220,10 +220,9 @@ export default function EditMenuClient({
                                 handleUnpublish();
                             }}
                             disabled={unpublishing}
-                            className="bg-amber-600 hover:bg-amber-800 focus:ring-amber-600"
                         >
                             {unpublishing && <Spinner />}
-                            Unpublish menu
+                            Unpublish
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

@@ -54,12 +54,12 @@ export function SnackMultiSelect({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2.5">
         {selectedDishes.map((dish) => (
           <Badge
             key={dish.id}
-            variant="secondary"
-            className="pl-2.5 pr-1 py-1 text-sm font-normal"
+            variant="outline"
+            className="pl-2.5 pr-1 py-1 text-sm font-normal shadow-xs rounded-sm"
           >
             {dish.name}
             <button
@@ -77,11 +77,10 @@ export function SnackMultiSelect({
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-7 border-dashed"
+                className="h-7 bg-blue-50 border-blue-800 border-dashed hover:bg-blue-50 font-normal"
               >
-                <ChevronsUpDown className="mr-1.5 size-3.5" />
-                Add snack
+                Select snacks
+                <ChevronsUpDown className="opacity-70 size-3.5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-75 p-0" align="start">

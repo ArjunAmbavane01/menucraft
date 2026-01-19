@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Dish {
     id: number;
@@ -26,8 +26,8 @@ interface Dish {
 
 interface DishSelectProps {
     category: string;
-    value?: number;
-    onChange: (id: number) => void;
+    value?: number | null;
+    onChange: (id: number | null) => void;
     dishes: Dish[];
     lastUsedMap: Record<number, string | null>;
     placeholder?: string;
@@ -40,23 +40,23 @@ export function DishSelect({
     lastUsedMap,
     placeholder = "Select dish...",
 }: DishSelectProps) {
-    const [open, setOpen] = React.useState(false);
-    const [search, setSearch] = React.useState("");
-    const [isTruncated, setIsTruncated] = React.useState(false);
+    const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const [isTruncated, setIsTruncated] = useState(false);
 
-    const textRef = React.useRef<HTMLSpanElement>(null);
+    const textRef = useRef<HTMLSpanElement>(null);
 
     const selectedDish = dishes.find((d) => d.id === value);
 
     // Filter dishes based on search
-    const filteredDishes = React.useMemo(() => {
+    const filteredDishes = useMemo(() => {
         if (!search) return dishes;
         return dishes.filter((dish) =>
             dish.name.toLowerCase().includes(search.toLowerCase())
         );
     }, [dishes, search]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const el = textRef.current;
         if (!el) return;
         setIsTruncated(el.scrollWidth > el.clientWidth);
@@ -67,22 +67,37 @@ export function DishSelect({
             <Popover open={open} onOpenChange={setOpen}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={open}
-                                className={cn(
-                                    "w-45 justify-between font-normal",
-                                    !value && "text-muted-foreground"
-                                )}
-                            >
-                                <span ref={textRef} className="truncate">
-                                    {selectedDish ? selectedDish.name : placeholder}
-                                </span>
-                                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
+                        <div className="relative flex items-center">
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={open}
+                                    className={cn(
+                                        "w-48 justify-between font-normal",
+                                        !value && " bg-blue-50 border-blue-800 border-dashed hover:bg-blue-50",
+                                    )}
+                                >
+                                    <span ref={textRef} className="truncate flex-1 pr-6">
+                                        {selectedDish ? selectedDish.name : placeholder}
+                                    </span>
+                                    <ChevronsUpDown className="shrink-0 opacity-70" />
+                                </Button>
+                            </PopoverTrigger>
+                            {value && (
+                                <Button
+                                    variant={"ghost"}
+                                    size={"icon"}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onChange(null);
+                                    }}
+                                    className="absolute right-8 z-10 size-5 group rounded-sm"
+                                >
+                                    <X className="size-4 opacity-50 group-hover:opacity-80" />
+                                </Button>
+                            )}
+                        </div>
                     </TooltipTrigger>
                     {selectedDish && isTruncated && (
                         <TooltipContent side="top">
