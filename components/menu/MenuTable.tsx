@@ -44,22 +44,25 @@ export function MenuTable({
         new Set(Object.values(MenuTemplate).flat())
     ) as DishCategory[];
 
-    const snackDishes = dishesByCategory["snacks"] || [];
+    const snackDishes = dishesByCategory["main"] || [];
 
     return (
         <div className="rounded-md border overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted/50">
-                        <TableHead className="font-medium pl-3">Day</TableHead>
-                        {allCategories.map((category) => (
-                            <TableHead
-                                key={category}
-                                className="text-center capitalize font-semibold"
-                            >
-                                {category}
-                            </TableHead>
-                        ))}
+                        <TableHead className="font-medium pl-3 min-w-44">Day</TableHead>
+                        {allCategories.map((category) => {
+                            if (category === "snacks") return null;
+                            return (
+                                <TableHead
+                                    key={category}
+                                    className="text-center capitalize font-semibold"
+                                >
+                                    {category}
+                                </TableHead>
+                            )
+                        })}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -78,8 +81,7 @@ export function MenuTable({
                                             {!readOnly && (
                                                 <Button
                                                     variant="ghost"
-                                                    size="icon"
-                                                    className="size-7"
+                                                    size="icon-sm"
                                                     onClick={() => onToggleHoliday(day)}
                                                     title={isHoliday ? "Unmark as holiday" : "Mark as holiday"}
                                                 >
@@ -90,7 +92,7 @@ export function MenuTable({
                                                 {weekdayLabels[day]}
                                             </span>
                                             {isToday && !isHoliday && (
-                                                <Badge variant="default" className="text-xs">
+                                                <Badge variant="outline" className="text-xs mt-0.5">
                                                     Today
                                                 </Badge>
                                             )}
@@ -100,10 +102,10 @@ export function MenuTable({
                                         const dishId = dayData?.dishes?.[category];
                                         const dishes = dishesByCategory[category] || [];
 
+                                        if (category === "snacks") return null;
+
                                         // Hide category if not in template for this day
-                                        if (!categoriesForDay.includes(category)) {
-                                            return <TableCell key={category}></TableCell>;
-                                        }
+                                        if (!categoriesForDay.includes(category)) return null;
 
                                         if (readOnly) {
                                             const dish = dishes.find((d) => d.id === dishId);
@@ -151,38 +153,42 @@ export function MenuTable({
                                         );
                                     })}
                                 </TableRow>
+
                                 {/* Evening Snacks Row */}
                                 {!isHoliday && (
                                     <TableRow>
-                                        <TableCell colSpan={allCategories.length + 1} className="bg-muted/20 py-3">
-                                            <div className="flex items-start gap-3 pl-2">
-                                                <span className="text-sm font-medium text-muted-foreground min-w-30 pt-1">
-                                                    Evening Snacks:
-                                                </span>
-                                                {readOnly ? (
-                                                    eveningSnacks.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {eveningSnacks.map((snackId) => {
-                                                                const snack = snackDishes.find((d) => d.id === snackId);
-                                                                return snack ? (
-                                                                    <Badge key={snackId} variant="secondary" className="text-sm font-normal">
-                                                                        {snack.name}
-                                                                    </Badge>
-                                                                ) : null;
-                                                            })}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-sm text-muted-foreground">—</span>
-                                                    )
+                                        {/* Label cell */}
+                                        <TableCell className="bg-muted/20 pl-3">
+                                            <span className="text-sm font-medium text-muted-foreground">
+                                                Evening Snacks:
+                                            </span>
+                                        </TableCell>
+
+                                        {/* Content cell */}
+                                        <TableCell colSpan={allCategories.length} className="bg-muted/20">
+                                            {readOnly ? (
+                                                eveningSnacks.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {eveningSnacks.map((snackId) => {
+                                                            const snack = snackDishes.find((d) => d.id === snackId);
+                                                            return snack ? (
+                                                                <Badge key={snackId} variant="secondary" className="text-sm font-normal">
+                                                                    {snack.name}
+                                                                </Badge>
+                                                            ) : null;
+                                                        })}
+                                                    </div>
                                                 ) : (
-                                                    <SnackMultiSelect
-                                                        value={eveningSnacks}
-                                                        onChange={(ids) => onSnacksChange?.(day, ids)}
-                                                        dishes={snackDishes}
-                                                        lastUsedMap={lastUsedMap}
-                                                    />
-                                                )}
-                                            </div>
+                                                    <span className="text-sm text-muted-foreground">—</span>
+                                                )
+                                            ) : (
+                                                <SnackMultiSelect
+                                                    value={eveningSnacks}
+                                                    onChange={(ids) => onSnacksChange?.(day, ids)}
+                                                    dishes={snackDishes}
+                                                    lastUsedMap={lastUsedMap}
+                                                />
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 )}

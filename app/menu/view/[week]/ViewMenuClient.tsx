@@ -2,7 +2,7 @@
 
 import { MenuTable } from "@/components/menu/MenuTable";
 import { WeekHeader } from "@/components/menu/WeekHeader";
-import { WeeklyMenu, MenuData } from "@/types/menu";
+import { WeeklyMenu } from "@/types/menu";
 import { formatWeekDate } from "@/lib/week-utils";
 import { DishesByCategory, LastUsedMap } from "@/types/dishes";
 
