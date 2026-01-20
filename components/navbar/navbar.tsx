@@ -2,10 +2,7 @@ import { User } from 'better-auth'
 import Logo from '../Logo'
 import UserMenu from './UserMenu';
 import Link from 'next/link';
-
-interface NavbarProps {
-  user: User;
-}
+import { getAuthenticatedSession } from '@/server/auth/getSession';
 
 const navLinks = [
   {
@@ -14,7 +11,8 @@ const navLinks = [
   }
 ]
 
-export default function Navbar({ user }: NavbarProps) {
+export default async function Navbar() {
+  const userSession = await getAuthenticatedSession();
   return (
     <nav className='fixed top-0 inset-x-0 flex h-16 w-full p-3 bg-sidebar/80 backdrop-blur-md border z-50'>
       <div className='flex justify-between items-center w-full max-w-7xl mx-auto'>
@@ -32,7 +30,7 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
 
-        <UserMenu user={user} />
+        <UserMenu user={userSession.user} />
       </div>
     </nav>
   )
