@@ -1,5 +1,5 @@
 import { DishesByCategory } from "@/types/dishes";
-import { MenuData, weekdays, weekdayLabels } from "@/types/menu";
+import { MenuData, weekdays, weekdayLabels, MenuTemplate } from "@/types/menu";
 
 export function formatMenuForWhatsApp(
     menuData: MenuData,
@@ -20,12 +20,23 @@ export function formatMenuForWhatsApp(
             // Get all dishes for this day
             const dishes: string[] = [];
 
-            Object.entries(dayData.dishes).forEach(([category, dishId]) => {
+            const orderedCategories = [...MenuTemplate[day]];
+
+            // reorder special to be at index 2 if there
+            const specialIndex = orderedCategories.indexOf("special");
+            if (specialIndex !== -1) {
+                orderedCategories.splice(specialIndex, 1);
+                orderedCategories.splice(2, 0, "special");
+            }
+
+            orderedCategories.forEach((category) => {
+                const dishId = dayData.dishes[category];
+                if (!dishId) return;
+
                 const categoryDishes = dishesByCategory[category] || [];
                 const dish = categoryDishes.find((d) => d.id === dishId);
-                if (dish) {
-                    dishes.push(dish.name);
-                }
+
+                if (dish) dishes.push(dish.name);
             });
 
             dishes.forEach((dishName) => {

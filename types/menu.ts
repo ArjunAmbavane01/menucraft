@@ -36,9 +36,9 @@ export interface WeeklyMenu {
 }
 
 export const MenuTemplate: Record<Weekday, DishCategory[]> = {
-  monday: ["main", "side", "egg", "dal", "dal khichdi", "special", "rice", "chicken", "snack"],
-  tuesday: ["main", "side", "egg", "dal", "dal khichdi", "special", "rice", "chicken", "snack"],
-  wednesday: ["main", "side", "egg", "dal", "dal khichdi", "special", "rice", "chicken", "snack"],
-  thursday: ["main", "side", "egg", "dal", "dal khichdi", "special", "rice", "chicken", "snack"],
-  friday: ["main", "side", "egg", "dal", "dal khichdi", "special", "rice", "chicken", "snack"],
+  monday: ["main", "side", "egg", "dal", "rice", "dal khichdi", "special", "chicken", "snack"],
+  tuesday: ["main", "side", "egg", "dal", "rice", "dal khichdi", "special", "chicken", "snack"],
+  wednesday: ["main", "side", "egg", "dal", "rice", "dal khichdi", "special", "chicken", "snack"],
+  thursday: ["main", "side", "egg", "dal", "rice", "dal khichdi", "special", "chicken", "snack"],
+  friday: ["main", "side", "egg", "dal", "rice", "dal khichdi", "special", "chicken", "snack"],
 };
